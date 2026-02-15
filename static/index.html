@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DTIC Uniqueness Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+  <!-- Subtle background grid -->
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo-group">
+        <div class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <rect x="2" y="2" width="24" height="24" rx="3" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 9h12M8 14h8M8 19h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="21" cy="19" r="3" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M23 21l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="logo-text">DTIC Uniqueness Analyzer</h1>
+          <p class="logo-sub">Defense Technical Information Center</p>
+        </div>
+      </div>
+      <div class="header-status">
+        <span class="status-dot"></span>
+        <span class="status-text">System Online</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+      <h2 class="section-label">How It Works</h2>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-body">
+            <h3>Describe</h3>
+            <p>Enter your research proposal title, abstract, and keywords</p>
+          </div>
+        </div>
+        <div class="step-connector" aria-hidden="true"></div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-body">
+            <h3>Search</h3>
+            <p>Multiple query strategies scan the DTIC Dimensions database</p>
+          </div>
+        </div>
+        <div class="step-connector" aria-hidden="true"></div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-body">
+            <h3>Rank</h3>
+            <p>SPECTER2 embeddings compute semantic similarity against results</p>
+          </div>
+        </div>
+        <div class="step-connector" aria-hidden="true"></div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <div class="step-body">
+            <h3>Assess</h3>
+            <p>AI analyzes top matches and generates a uniqueness verdict</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analysis Form -->
+    <section class="form-section" id="form-section">
+      <h2 class="section-label">Research Proposal</h2>
+      <form id="analyze-form" class="analyze-form">
+        <div class="form-card">
+
+          <div class="field">
+            <label for="title">
+              Proposal Title
+              <span class="required">Required</span>
+            </label>
+            <input type="text" id="title" name="title" required
+                   placeholder="e.g., Autonomous Underwater Vehicle Navigation Using Quantum Sensors">
+            <span class="field-hint">The working title of your research proposal</span>
+          </div>
+
+          <div class="field">
+            <label for="abstract">
+              Abstract
+              <span class="required">Required</span>
+            </label>
+            <textarea id="abstract" name="abstract" rows="8" required
+                      placeholder="Paste your full research proposal abstract here..."></textarea>
+            <div class="field-meta">
+              <span class="field-hint">A detailed abstract improves search accuracy</span>
+              <span class="char-count" id="abstract-count">0 characters</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="keywords">Keywords</label>
+            <input type="text" id="keywords" name="keywords"
+                   placeholder="e.g., AUV, quantum sensing, inertial navigation">
+            <span class="field-hint">Comma-separated technical keywords relevant to your research</span>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="military_branch">Sponsoring Branch</label>
+              <div class="select-wrap">
+                <select id="military_branch" name="military_branch">
+                  <option value="navy" selected>Navy</option>
+                  <option value="army">Army</option>
+                  <option value="air_force">Air Force</option>
+                  <option value="marine_corps">Marine Corps</option>
+                  <option value="space_force">Space Force</option>
+                  <option value="darpa">DARPA</option>
+                  <option value="dod">DoD (Joint)</option>
+                </select>
+                <svg class="select-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="field-hint">Used to determine if similar work has already been funded by your branch specifically</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="additional_context">Additional Context</label>
+            <textarea id="additional_context" name="additional_context" rows="3"
+                      placeholder="Any additional context about your approach, methodology, or what makes this work distinct..."></textarea>
+          </div>
+
+        </div>
+
+        <button type="submit" id="submit-btn" class="submit-btn">
+          <span class="btn-text">Run Uniqueness Analysis</span>
+          <svg class="btn-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M3 9h12M11 5l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </form>
+    </section>
+
+    <!-- Loading State -->
+    <section id="loading" class="loading-section hidden">
+      <div class="loading-card">
+        <div class="loading-header">
+          <h2>Analysis In Progress</h2>
+          <span class="loading-elapsed" id="loading-elapsed">0:00</span>
+        </div>
+        <div class="loading-stages">
+          <div class="stage" id="stage-search" data-status="pending">
+            <div class="stage-indicator">
+              <div class="stage-dot"></div>
+            </div>
+            <div class="stage-info">
+              <span class="stage-name">Searching DTIC database</span>
+              <span class="stage-desc">Running multiple query strategies across publications</span>
+            </div>
+          </div>
+          <div class="stage" id="stage-embed" data-status="pending">
+            <div class="stage-indicator">
+              <div class="stage-dot"></div>
+            </div>
+            <div class="stage-info">
+              <span class="stage-name">Computing semantic similarity</span>
+              <span class="stage-desc">Encoding and ranking publications with SPECTER2 embeddings</span>
+            </div>
+          </div>
+          <div class="stage" id="stage-analyze" data-status="pending">
+            <div class="stage-indicator">
+              <div class="stage-dot"></div>
+            </div>
+            <div class="stage-info">
+              <span class="stage-name">Generating uniqueness assessment</span>
+              <span class="stage-desc">AI analysis of top matches against your proposal</span>
+            </div>
+          </div>
+          <div class="stage" id="stage-report" data-status="pending">
+            <div class="stage-indicator">
+              <div class="stage-dot"></div>
+            </div>
+            <div class="stage-info">
+              <span class="stage-name">Compiling report</span>
+              <span class="stage-desc">Formatting results and recommendations</span>
+            </div>
+          </div>
+        </div>
+        <div class="loading-bar-track">
+          <div class="loading-bar-fill" id="loading-bar"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="results-section hidden">
+
+      <div class="verdict-card" id="verdict-card">
+        <div class="verdict-label">Assessment Verdict</div>
+        <div class="verdict-value" id="verdict-value"></div>
+        <div class="verdict-confidence" id="verdict-confidence"></div>
+        <div class="verdict-summary" id="verdict-summary"></div>
+      </div>
+
+      <div class="report-actions">
+        <button class="action-btn" id="download-btn" title="Download report as Markdown">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Download Report
+        </button>
+        <button class="action-btn" id="new-analysis-btn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 8a6 6 0 0111.5-2.3M14 8a6 6 0 01-11.5 2.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M13 2v4h-4M3 14v-4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          New Analysis
+        </button>
+      </div>
+
+      <div class="report-card">
+        <div class="report-header">
+          <h2>Full Analysis Report</h2>
+        </div>
+        <div class="report-body" id="report-content"></div>
+      </div>
+    </section>
+
+    <!-- Error State -->
+    <section id="error" class="error-section hidden">
+      <div class="error-card">
+        <div class="error-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M12 8v5M12 16v.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Analysis Failed</h3>
+        <p id="error-message"></p>
+        <button class="action-btn" id="retry-btn">Try Again</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>DTIC Uniqueness Analyzer &middot; Open Source &middot; <a href="https://github.com/that-github-user/dtic-crawl" target="_blank" rel="noopener">GitHub</a></p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

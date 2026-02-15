@@ -1,0 +1,51 @@
+{
+  "docs": [
+    {
+      "id": "pub.1140561283",
+      "title": "Autonomous Underwater Vehicle Navigation in GPS-Denied Environments",
+      "short_abstract": "This paper presents a novel approach to AUV navigation using inertial measurement units combined with terrain-relative navigation...",
+      "author_list": [
+        {"full_name": "John Smith"},
+        {"full_name": "Jane Doe"}
+      ],
+      "pub_year": 2022,
+      "journal_title": "Journal of Ocean Engineering",
+      "doi": "10.1234/joe.2022.001",
+      "acknowledgements": "This work was supported by the Office of Naval Research (ONR) under grant N00014-20-1-2345.",
+      "times_cited": 15,
+      "score": 8.5
+    },
+    {
+      "id": "pub.1140561284",
+      "title": "Machine Learning for Underwater Acoustic Signal Processing",
+      "short_abstract": "We apply deep learning techniques to the problem of underwater acoustic classification and detection...",
+      "author_list": [
+        {"full_name": "Alice Johnson"},
+        {"full_name": "Bob Williams"}
+      ],
+      "pub_year": 2023,
+      "journal_title": "IEEE Transactions on Signal Processing",
+      "doi": "10.1234/tsp.2023.002",
+      "acknowledgements": "Funded by the Army Research Office (ARO) under grant W911NF-21-1-0001.",
+      "times_cited": 8,
+      "score": 7.2
+    },
+    {
+      "id": "pub.1140561285",
+      "title": "Quantum Sensing for Inertial Navigation Applications",
+      "short_abstract": "This research explores the use of cold atom interferometry for precision inertial navigation in defense applications...",
+      "author_list": [
+        {"full_name": "Carol Lee"}
+      ],
+      "pub_year": 2021,
+      "journal_title": "Physical Review Applied",
+      "doi": "10.1234/pra.2021.003",
+      "acknowledgements": "Supported by DARPA under contract HR0011-20-C-0050.",
+      "times_cited": 25,
+      "score": 6.8
+    }
+  ],
+  "navigation": {
+    "results_json": null
+  }
+}
