@@ -140,6 +140,16 @@ async def analyze_uniqueness(
         norm = title.strip().lower()
         if norm in title_lookup:
             return title_lookup[norm]
+        # Brute-force: check if any SR ID contains the bare numeric part,
+        # or if titles share substantial overlap
+        for sr in similarity_results:
+            sr_bare = sr.publication.id.replace("pub.", "").strip()
+            if bare and sr_bare and bare == sr_bare:
+                return sr
+        for sr in similarity_results:
+            sr_title = sr.publication.title.strip().lower()
+            if norm and sr_title and (norm in sr_title or sr_title in norm):
+                return sr
         return None
 
     # Build comparisons
@@ -150,10 +160,17 @@ async def analyze_uniqueness(
         sr = _find_sr(pub_id, comp_title)
         pub = sr.publication if sr else None
 
-        if not sr:
+        if sr:
+            logger.info("Enrichment hit: %r → score=%.3f url=%s", pub_id, sr.similarity_score, sr.publication.url[:60])
+        else:
+            # Dump all available IDs and titles for debugging
+            available_ids = [s.publication.id for s in similarity_results[:5]]
+            available_titles = [s.publication.title[:50] for s in similarity_results[:5]]
             logger.warning(
-                "Enrichment miss: pub_id=%r title=%r — no match in %d results",
+                "Enrichment miss: pub_id=%r title=%r — %d results available. "
+                "Sample IDs: %s  Sample titles: %s",
                 pub_id, comp_title[:60], len(similarity_results),
+                available_ids, available_titles,
             )
 
         comparisons.append(
