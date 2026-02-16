@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="%(name)s %(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
