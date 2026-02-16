@@ -14,6 +14,11 @@ from src.analysis.prompts import (
     build_analysis_prompt,
     format_publications_for_prompt,
 )
+from src.analysis.scoring import (
+    compute_confidence,
+    compute_overlap_rating,
+    compute_verdict,
+)
 from src.models import (
     AnalysisReport,
     MilitaryBranch,
@@ -57,6 +62,27 @@ def _parse_llm_response(text: str) -> dict:
     return json.loads(cleaned)
 
 
+def _build_precomputed_metrics_text(
+    similarity_results: list[SimilarityResult],
+    overlap_ratings: list[str],
+    verdict: Verdict,
+    confidence: float,
+) -> str:
+    """Format pre-computed metrics as text for the LLM prompt."""
+    lines = [
+        f"**Verdict:** {verdict.value}",
+        f"**Confidence:** {confidence:.2f}",
+        "",
+        "**Per-Publication Overlap Ratings:**",
+    ]
+    for sr, rating in zip(similarity_results, overlap_ratings):
+        lines.append(
+            f"- {sr.publication.id} ({sr.publication.title[:60]}): "
+            f"similarity={sr.similarity_score:.3f} → overlap={rating}"
+        )
+    return "\n".join(lines)
+
+
 async def analyze_uniqueness(
     proposal: UserProposal,
     similarity_results: list[SimilarityResult],
@@ -67,8 +93,27 @@ async def analyze_uniqueness(
     if not api_key:
         raise ValueError("ANTHROPIC_API_KEY environment variable is required")
 
+    # Compute deterministic metrics before LLM call
+    overlap_ratings = [
+        compute_overlap_rating(r.similarity_score) for r in similarity_results
+    ]
+    verdict = compute_verdict(
+        similarity_results, overlap_ratings, proposal.military_branch.value
+    )
+    confidence = compute_confidence(similarity_results, overlap_ratings, verdict)
+
+    logger.info(
+        "Computed metrics: verdict=%s confidence=%.2f overlaps=%s",
+        verdict.value, confidence,
+        {r: overlap_ratings.count(r) for r in ("high", "medium", "low")},
+    )
+
     pub_dicts = _results_to_prompt_dicts(similarity_results)
     publications_text = format_publications_for_prompt(pub_dicts)
+
+    precomputed_text = _build_precomputed_metrics_text(
+        similarity_results, overlap_ratings, verdict, confidence
+    )
 
     user_prompt = build_analysis_prompt(
         proposal_title=proposal.title,
@@ -77,6 +122,7 @@ async def analyze_uniqueness(
         proposal_branch=proposal.military_branch.value,
         additional_context=proposal.additional_context,
         publications_text=publications_text,
+        precomputed_metrics=precomputed_text,
     )
 
     logger.info("Sending analysis request to Claude (%s)", LLM_MODEL)
@@ -85,7 +131,7 @@ async def analyze_uniqueness(
     message = client.messages.create(
         model=LLM_MODEL,
         max_tokens=LLM_MAX_TOKENS,
-        temperature=0,
+        temperature=0.7,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_prompt}],
     )
@@ -97,11 +143,11 @@ async def analyze_uniqueness(
         parsed = _parse_llm_response(response_text)
     except json.JSONDecodeError as e:
         logger.error("Failed to parse LLM response as JSON: %s", e)
-        # Return a NEEDS_REVIEW report with the raw response
+        # Return report with computed metrics even on parse failure
         return AnalysisReport(
             proposal=proposal,
-            verdict=Verdict.NEEDS_REVIEW,
-            confidence=0.0,
+            verdict=verdict,
+            confidence=confidence,
             executive_summary=f"LLM response could not be parsed. Raw response:\n\n{response_text}",
             total_results_found=len(similarity_results),
             results_analyzed=len(similarity_results),
@@ -123,6 +169,11 @@ async def analyze_uniqueness(
         norm_title = sr.publication.title.strip().lower()
         if norm_title:
             title_lookup[norm_title] = sr
+
+    # Build index from similarity results to overlap ratings
+    sr_overlap_map: dict[str, str] = {}
+    for sr, rating in zip(similarity_results, overlap_ratings):
+        sr_overlap_map[sr.publication.id] = rating
 
     def _find_sr(pub_id: str, title: str) -> SimilarityResult | None:
         """Find matching SimilarityResult by ID or title."""
@@ -153,7 +204,7 @@ async def analyze_uniqueness(
                 return sr
         return None
 
-    # Build comparisons
+    # Build comparisons — use computed overlap_rating instead of LLM's
     comparisons = []
     for comp_data in parsed.get("comparisons", []):
         pub_id = comp_data.get("publication_id", "")
@@ -174,6 +225,9 @@ async def analyze_uniqueness(
                 available_ids, available_titles,
             )
 
+        # Use computed overlap rating from scoring module
+        computed_rating = sr_overlap_map.get(pub.id, "low") if pub else "low"
+
         comparisons.append(
             PublicationComparison(
                 publication_id=pub_id,
@@ -181,8 +235,7 @@ async def analyze_uniqueness(
                 similarity_assessment=comp_data.get("similarity_assessment", ""),
                 key_differences=comp_data.get("key_differences", []),
                 key_overlaps=comp_data.get("key_overlaps", []),
-                overlap_rating=comp_data.get("overlap_rating")
-                    or comp_data.get("threat_level", "low"),
+                overlap_rating=computed_rating,
                 url=pub.url if pub else "",
                 pub_year=pub.pub_year if pub else None,
                 funding_branches=[b.value for b in pub.detected_branches] if pub else [],
@@ -192,8 +245,8 @@ async def analyze_uniqueness(
 
     return AnalysisReport(
         proposal=proposal,
-        verdict=Verdict(parsed.get("verdict", "NEEDS_REVIEW")),
-        confidence=float(parsed.get("confidence", 0.0)),
+        verdict=verdict,
+        confidence=confidence,
         executive_summary=parsed.get("executive_summary", ""),
         comparisons=comparisons,
         points_of_differentiation=parsed.get("points_of_differentiation", []),

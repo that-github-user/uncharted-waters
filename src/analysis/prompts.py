@@ -29,9 +29,24 @@ def build_analysis_prompt(
     proposal_branch: str,
     additional_context: str,
     publications_text: str,
+    precomputed_metrics: str = "",
 ) -> str:
     """Build the user prompt for uniqueness analysis."""
     keywords_str = ", ".join(proposal_keywords) if proposal_keywords else "None provided"
+
+    metrics_section = ""
+    if precomputed_metrics:
+        metrics_section = f"""
+---
+
+## Pre-Computed Metrics
+
+The following verdict, confidence, and per-publication overlap ratings have been \
+computed deterministically from the cosine similarity scores. Reference these in your \
+narrative text — do NOT override them.
+
+{precomputed_metrics}
+"""
 
     return f"""\
 ## Research Proposal Under Assessment
@@ -47,7 +62,7 @@ def build_analysis_prompt(
 ## Similar Publications Found in DTIC
 
 {publications_text}
-
+{metrics_section}
 ---
 
 ## Instructions
@@ -56,8 +71,6 @@ Analyze the proposal against the publications above and provide your assessment 
 following JSON format. Do NOT wrap in markdown code fences.
 
 {{
-  "verdict": "UNIQUE | NAVY_UNIQUE | AT_RISK | NEEDS_REVIEW",
-  "confidence": 0.0 to 1.0,
   "executive_summary": "2-3 paragraph summary of the uniqueness assessment",
   "comparisons": [
     {{
@@ -65,8 +78,7 @@ following JSON format. Do NOT wrap in markdown code fences.
       "title": "pub title",
       "similarity_assessment": "1-2 sentence description of how this pub relates to the proposal",
       "key_differences": ["difference 1", "difference 2"],
-      "key_overlaps": ["overlap 1", "overlap 2"],
-      "overlap_rating": "low | medium | high"
+      "key_overlaps": ["overlap 1", "overlap 2"]
     }}
   ],
   "points_of_differentiation": [
