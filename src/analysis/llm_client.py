@@ -85,6 +85,7 @@ async def analyze_uniqueness(
     message = client.messages.create(
         model=LLM_MODEL,
         max_tokens=LLM_MAX_TOKENS,
+        temperature=0,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_prompt}],
     )
