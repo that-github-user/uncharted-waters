@@ -173,7 +173,13 @@ function showResults(data) {
   document.getElementById("verdict-confidence").textContent =
     `Confidence: ${Math.round(data.confidence * 100)}%`;
 
-  document.getElementById("verdict-summary").textContent = data.summary || "";
+  // Show a truncated executive summary in the verdict card
+  const fullSummary = data.summary || "";
+  const sentences = fullSummary.split(/(?<=[.!?])\s+/);
+  const truncated = sentences.length > 3
+    ? sentences.slice(0, 3).join(" ") + " ..."
+    : fullSummary;
+  document.getElementById("verdict-summary").textContent = truncated;
 
   // Render charts
   renderCharts(data);

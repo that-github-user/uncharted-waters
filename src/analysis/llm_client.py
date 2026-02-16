@@ -108,9 +108,14 @@ async def analyze_uniqueness(
         )
 
     # Build lookup from similarity results for enrichment
+    # Index by multiple key formats so LLM ID variations still match
     pub_lookup: dict[str, SimilarityResult] = {}
     for sr in similarity_results:
-        pub_lookup[sr.publication.id] = sr
+        full_id = sr.publication.id
+        pub_lookup[full_id] = sr
+        # Also index without "pub." prefix (LLM sometimes strips it)
+        if full_id.startswith("pub."):
+            pub_lookup[full_id[4:]] = sr
         # Also index by title for fallback matching
         pub_lookup[sr.publication.title] = sr
 
@@ -118,8 +123,13 @@ async def analyze_uniqueness(
     comparisons = []
     for comp_data in parsed.get("comparisons", []):
         pub_id = comp_data.get("publication_id", "")
-        # Enrich with data from similarity results
-        sr = pub_lookup.get(pub_id) or pub_lookup.get(comp_data.get("title", ""))
+        # Enrich with data from similarity results — try exact, stripped, and title
+        sr = (
+            pub_lookup.get(pub_id)
+            or pub_lookup.get(pub_id.replace("pub.", ""))
+            or pub_lookup.get(f"pub.{pub_id}")
+            or pub_lookup.get(comp_data.get("title", ""))
+        )
         pub = sr.publication if sr else None
 
         comparisons.append(

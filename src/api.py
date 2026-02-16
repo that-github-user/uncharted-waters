@@ -41,6 +41,7 @@ async def analyze(request: AnalyzeRequest):
         "verdict": report.verdict.value,
         "confidence": report.confidence,
         "markdown": markdown,
-        "summary": summary,
+        "summary": report.executive_summary,
+        "step_summary": summary,
         "report": report.model_dump(),
     }

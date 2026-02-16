@@ -626,9 +626,11 @@ select:focus {
 .verdict-summary {
   font-size: 0.9rem;
   color: var(--slate-300);
-  line-height: 1.6;
-  max-width: 640px;
+  line-height: 1.75;
+  max-width: 720px;
   margin: 0 auto;
+  text-align: left;
+  white-space: pre-line;
 }
 
 /* Actions */
