@@ -674,14 +674,14 @@ select:focus {
 
 .report-header h2 {
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 400;
 }
 
 .report-body {
-  padding: 2rem;
-  font-size: 0.88rem;
-  line-height: 1.75;
+  padding: 2.5rem;
+  font-size: 1rem;
+  line-height: 1.85;
   color: var(--slate-200);
 }
 
@@ -697,16 +697,17 @@ select:focus {
   margin-bottom: 0.5rem;
 }
 
-.report-body h1 { font-size: 1.4rem; }
+.report-body h1 { font-size: 1.7rem; }
 .report-body h2 {
-  font-size: 1.15rem;
+  font-size: 1.35rem;
   padding-bottom: 0.4rem;
   border-bottom: 1px solid var(--border);
+  margin-top: 2.25rem;
 }
-.report-body h3 { font-size: 1rem; }
+.report-body h3 { font-size: 1.15rem; }
 .report-body h4 {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -714,17 +715,17 @@ select:focus {
 }
 
 .report-body p {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .report-body ul,
 .report-body ol {
-  padding-left: 1.25rem;
-  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .report-body li {
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.4rem;
 }
 
 .report-body strong {
@@ -758,7 +759,7 @@ select:focus {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 1rem;
-  font-size: 0.82rem;
+  font-size: 0.92rem;
 }
 
 .report-body th {
@@ -796,7 +797,7 @@ select:focus {
   border: none;
   height: 1px;
   background: var(--border);
-  margin: 1.5rem 0;
+  margin: 2rem 0;
 }
 
 .report-body a {
@@ -806,6 +807,53 @@ select:focus {
 
 .report-body a:hover {
   text-decoration: underline;
+}
+
+/* ---- Charts Dashboard ---- */
+.charts-dashboard {
+  margin-bottom: 1.25rem;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+.chart-card-wide {
+  grid-column: 1 / -1;
+}
+
+.chart-title {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+}
+
+.chart-container-sm {
+  max-width: 220px;
+  margin: 0 auto;
+}
+
+.chart-container-bar {
+  max-height: 350px;
 }
 
 /* ---- Error ---- */
@@ -902,7 +950,16 @@ select:focus {
   }
 
   .report-body {
-    padding: 1.25rem;
+    padding: 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card-wide {
+    grid-column: auto;
   }
 
   .verdict-card {
@@ -937,8 +994,13 @@ select:focus {
     font-size: 1.2rem;
   }
 
+  .report-body {
+    padding: 1.25rem;
+    font-size: 0.9rem;
+  }
+
   .report-body table {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 
   .report-body th,

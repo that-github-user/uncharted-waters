@@ -74,7 +74,7 @@ class TestReportGeneration:
                     similarity_assessment="Moderately similar",
                     key_differences=["Different method"],
                     key_overlaps=["Same domain"],
-                    threat_level="medium",
+                    overlap_rating="medium",
                 )
             ],
             points_of_differentiation=["Novel approach X"],

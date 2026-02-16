@@ -107,17 +107,34 @@ async def analyze_uniqueness(
             search_queries_used=search_queries_used,
         )
 
+    # Build lookup from similarity results for enrichment
+    pub_lookup: dict[str, SimilarityResult] = {}
+    for sr in similarity_results:
+        pub_lookup[sr.publication.id] = sr
+        # Also index by title for fallback matching
+        pub_lookup[sr.publication.title] = sr
+
     # Build comparisons
     comparisons = []
     for comp_data in parsed.get("comparisons", []):
+        pub_id = comp_data.get("publication_id", "")
+        # Enrich with data from similarity results
+        sr = pub_lookup.get(pub_id) or pub_lookup.get(comp_data.get("title", ""))
+        pub = sr.publication if sr else None
+
         comparisons.append(
             PublicationComparison(
-                publication_id=comp_data.get("publication_id", ""),
+                publication_id=pub_id,
                 title=comp_data.get("title", ""),
                 similarity_assessment=comp_data.get("similarity_assessment", ""),
                 key_differences=comp_data.get("key_differences", []),
                 key_overlaps=comp_data.get("key_overlaps", []),
-                threat_level=comp_data.get("threat_level", "low"),
+                overlap_rating=comp_data.get("overlap_rating")
+                    or comp_data.get("threat_level", "low"),
+                url=pub.url if pub else "",
+                pub_year=pub.pub_year if pub else None,
+                funding_branches=[b.value for b in pub.detected_branches] if pub else [],
+                similarity_score=sr.similarity_score if sr else 0.0,
             )
         )
 

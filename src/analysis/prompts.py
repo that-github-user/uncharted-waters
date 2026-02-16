@@ -66,7 +66,7 @@ following JSON format. Do NOT wrap in markdown code fences.
       "similarity_assessment": "1-2 sentence description of how this pub relates to the proposal",
       "key_differences": ["difference 1", "difference 2"],
       "key_overlaps": ["overlap 1", "overlap 2"],
-      "threat_level": "low | medium | high"
+      "overlap_rating": "low | medium | high"
     }}
   ],
   "points_of_differentiation": [

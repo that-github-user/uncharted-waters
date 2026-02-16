@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timezone
 
 from src.models import AnalysisReport, Verdict
@@ -21,11 +22,71 @@ VERDICT_DESCRIPTIONS = {
 }
 
 
+def _ensure_paragraph_breaks(text: str) -> str:
+    """Convert single newlines between non-empty lines to double newlines.
+
+    CommonMark treats single \\n as a soft break (space), so LLM output
+    that uses single newlines between paragraphs renders as one blob.
+    """
+    lines = text.split("\n")
+    result: list[str] = []
+    for i, line in enumerate(lines):
+        result.append(line)
+        # If this line and the next are both non-empty, insert an extra blank line
+        if (
+            i < len(lines) - 1
+            and line.strip()
+            and lines[i + 1].strip()
+            # Don't double-break if there's already a blank line
+            and not line.strip().startswith("-")
+            and not lines[i + 1].strip().startswith("-")
+        ):
+            result.append("")
+    return "\n".join(result)
+
+
+def _slugify(text: str) -> str:
+    """Create a URL-safe anchor slug from a title."""
+    slug = text.lower().strip()
+    slug = re.sub(r"[^\w\s-]", "", slug)
+    slug = re.sub(r"[\s_]+", "-", slug)
+    slug = re.sub(r"-+", "-", slug)
+    return slug.strip("-")
+
+
+def _add_executive_summary_links(
+    summary_text: str,
+    title_slug_pairs: list[tuple[str, str]],
+) -> str:
+    """Find exact title matches in the executive summary and wrap them as anchor links.
+
+    Sorts by title length descending to avoid substring conflicts.
+    """
+    # Sort longest first so "Foo Bar Baz" is matched before "Foo Bar"
+    pairs = sorted(title_slug_pairs, key=lambda p: len(p[0]), reverse=True)
+    for title, slug in pairs:
+        # Only link the first occurrence, avoid double-linking
+        if title in summary_text and f"[{title}]" not in summary_text:
+            summary_text = summary_text.replace(
+                title, f"[{title}](#{slug})", 1
+            )
+    return summary_text
+
+
 def generate_markdown_report(report: AnalysisReport) -> str:
     """Generate a full Markdown report from the analysis results."""
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     badge = VERDICT_BADGES[report.verdict]
     desc = VERDICT_DESCRIPTIONS[report.verdict]
+
+    # Pre-compute title/slug pairs for anchor linking
+    title_slug_pairs = [
+        (comp.title, _slugify(comp.title)) for comp in report.comparisons
+    ]
+
+    # Process executive summary: paragraph breaks + anchor links
+    exec_summary = _ensure_paragraph_breaks(report.executive_summary)
+    exec_summary = _add_executive_summary_links(exec_summary, title_slug_pairs)
 
     lines = [
         f"# DTIC Uniqueness Assessment Report",
@@ -61,7 +122,7 @@ def generate_markdown_report(report: AnalysisReport) -> str:
         f"",
         f"## Executive Summary",
         f"",
-        f"{report.executive_summary}",
+        f"{exec_summary}",
         f"",
         f"---",
         f"",
@@ -88,15 +149,39 @@ def generate_markdown_report(report: AnalysisReport) -> str:
             f"",
         ])
         for comp in report.comparisons:
-            threat_indicator = {"low": "Low", "medium": "Medium", "high": "HIGH"}.get(
-                comp.threat_level, comp.threat_level
+            overlap_indicator = {"low": "Low", "medium": "Medium", "high": "HIGH"}.get(
+                comp.overlap_rating, comp.overlap_rating
             )
+            slug = _slugify(comp.title)
+            assessment = _ensure_paragraph_breaks(comp.similarity_assessment)
+
+            # Title as hyperlink if URL is available, otherwise plain text
+            title_display = (
+                f"[{comp.title}]({comp.url})" if comp.url else comp.title
+            )
+
+            # Build metadata line: ID | Year | Funding | Overlap Rating | Similarity
+            meta_parts = [f"**ID:** {comp.publication_id}"]
+            if comp.pub_year:
+                meta_parts.append(f"**Year:** {comp.pub_year}")
+            if comp.funding_branches:
+                branches_str = ", ".join(
+                    b.replace("_", " ").title() for b in comp.funding_branches
+                )
+                meta_parts.append(f"**Funding:** {branches_str}")
+            meta_parts.append(f"**Overlap Rating:** {overlap_indicator}")
+            if comp.similarity_score > 0:
+                meta_parts.append(f"**Similarity:** {comp.similarity_score:.3f}")
+            meta_line = " | ".join(meta_parts)
+
             lines.extend([
-                f"### {comp.title}",
+                f'<a id="{slug}"></a>',
                 f"",
-                f"**ID:** {comp.publication_id} | **Threat Level:** {threat_indicator}",
+                f"### {title_display}",
                 f"",
-                f"{comp.similarity_assessment}",
+                f"{meta_line}",
+                f"",
+                f"{assessment}",
                 f"",
             ])
             if comp.key_overlaps:
@@ -146,6 +231,7 @@ def generate_markdown_report(report: AnalysisReport) -> str:
 def generate_step_summary(report: AnalysisReport) -> str:
     """Generate a shorter summary for GitHub Actions step summary."""
     badge = VERDICT_BADGES[report.verdict]
+    exec_summary = _ensure_paragraph_breaks(report.executive_summary)
 
     lines = [
         f"## DTIC Uniqueness Assessment: {badge}",
@@ -159,7 +245,7 @@ def generate_step_summary(report: AnalysisReport) -> str:
         f"",
         f"### Summary",
         f"",
-        f"{report.executive_summary}",
+        f"{exec_summary}",
         f"",
     ]
 

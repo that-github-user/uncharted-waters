@@ -73,7 +73,11 @@ class PublicationComparison(BaseModel):
     similarity_assessment: str
     key_differences: list[str] = Field(default_factory=list)
     key_overlaps: list[str] = Field(default_factory=list)
-    threat_level: str = "low"
+    overlap_rating: str = "low"
+    url: str = ""
+    pub_year: int | None = None
+    funding_branches: list[str] = Field(default_factory=list)
+    similarity_score: float = 0.0
 
 
 class AnalysisReport(BaseModel):

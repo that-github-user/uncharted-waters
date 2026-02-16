@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -211,6 +212,29 @@
         <div class="verdict-value" id="verdict-value"></div>
         <div class="verdict-confidence" id="verdict-confidence"></div>
         <div class="verdict-summary" id="verdict-summary"></div>
+      </div>
+
+      <div class="charts-dashboard hidden" id="charts-dashboard">
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-title">Confidence</div>
+            <div class="chart-container chart-container-sm">
+              <canvas id="chart-confidence"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Overlap Rating Breakdown</div>
+            <div class="chart-container chart-container-sm">
+              <canvas id="chart-overlap"></canvas>
+            </div>
+          </div>
+          <div class="chart-card chart-card-wide">
+            <div class="chart-title">Similarity Score Distribution</div>
+            <div class="chart-container chart-container-bar">
+              <canvas id="chart-similarity"></canvas>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="report-actions">
