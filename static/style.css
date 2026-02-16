@@ -630,7 +630,14 @@ select:focus {
   max-width: 720px;
   margin: 0 auto;
   text-align: left;
-  white-space: pre-line;
+}
+
+.verdict-summary p {
+  margin-bottom: 0.6rem;
+}
+
+.verdict-summary p:last-child {
+  margin-bottom: 0;
 }
 
 /* Actions */

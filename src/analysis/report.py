@@ -161,7 +161,11 @@ def generate_markdown_report(report: AnalysisReport) -> str:
             )
 
             # Build metadata line: ID | Year | Funding | Overlap Rating | Similarity
-            meta_parts = [f"**ID:** {comp.publication_id}"]
+            id_display = (
+                f"[{comp.publication_id}]({comp.url})"
+                if comp.url else comp.publication_id
+            )
+            meta_parts = [f"**ID:** {id_display}"]
             if comp.pub_year:
                 meta_parts.append(f"**Year:** {comp.pub_year}")
             if comp.funding_branches:

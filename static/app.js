@@ -173,13 +173,14 @@ function showResults(data) {
   document.getElementById("verdict-confidence").textContent =
     `Confidence: ${Math.round(data.confidence * 100)}%`;
 
-  // Show a truncated executive summary in the verdict card
+  // Show executive summary in the verdict card, rendered as HTML
   const fullSummary = data.summary || "";
-  const sentences = fullSummary.split(/(?<=[.!?])\s+/);
-  const truncated = sentences.length > 3
-    ? sentences.slice(0, 3).join(" ") + " ..."
-    : fullSummary;
-  document.getElementById("verdict-summary").textContent = truncated;
+  const verdictSummaryEl = document.getElementById("verdict-summary");
+  if (typeof marked !== "undefined" && fullSummary) {
+    verdictSummaryEl.innerHTML = marked.parse(fullSummary);
+  } else {
+    verdictSummaryEl.textContent = fullSummary;
+  }
 
   // Render charts
   renderCharts(data);

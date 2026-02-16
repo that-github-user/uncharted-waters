@@ -108,29 +108,53 @@ async def analyze_uniqueness(
         )
 
     # Build lookup from similarity results for enrichment
-    # Index by multiple key formats so LLM ID variations still match
-    pub_lookup: dict[str, SimilarityResult] = {}
+    # Use multiple key formats: exact ID, numeric-only, lowercase title
+    id_lookup: dict[str, SimilarityResult] = {}
+    title_lookup: dict[str, SimilarityResult] = {}
     for sr in similarity_results:
-        full_id = sr.publication.id
-        pub_lookup[full_id] = sr
-        # Also index without "pub." prefix (LLM sometimes strips it)
-        if full_id.startswith("pub."):
-            pub_lookup[full_id[4:]] = sr
-        # Also index by title for fallback matching
-        pub_lookup[sr.publication.title] = sr
+        full_id = sr.publication.id.strip()
+        id_lookup[full_id] = sr
+        # Strip "pub." prefix → index by bare numeric ID
+        bare_id = full_id.replace("pub.", "").strip()
+        if bare_id:
+            id_lookup[bare_id] = sr
+        # Case-insensitive, stripped title lookup
+        norm_title = sr.publication.title.strip().lower()
+        if norm_title:
+            title_lookup[norm_title] = sr
+
+    def _find_sr(pub_id: str, title: str) -> SimilarityResult | None:
+        """Find matching SimilarityResult by ID or title."""
+        pid = pub_id.strip()
+        # Try exact ID
+        if pid in id_lookup:
+            return id_lookup[pid]
+        # Try stripping "pub." from what LLM returned
+        bare = pid.replace("pub.", "").strip()
+        if bare in id_lookup:
+            return id_lookup[bare]
+        # Try adding "pub." prefix
+        if f"pub.{bare}" in id_lookup:
+            return id_lookup[f"pub.{bare}"]
+        # Fallback: case-insensitive title match
+        norm = title.strip().lower()
+        if norm in title_lookup:
+            return title_lookup[norm]
+        return None
 
     # Build comparisons
     comparisons = []
     for comp_data in parsed.get("comparisons", []):
         pub_id = comp_data.get("publication_id", "")
-        # Enrich with data from similarity results — try exact, stripped, and title
-        sr = (
-            pub_lookup.get(pub_id)
-            or pub_lookup.get(pub_id.replace("pub.", ""))
-            or pub_lookup.get(f"pub.{pub_id}")
-            or pub_lookup.get(comp_data.get("title", ""))
-        )
+        comp_title = comp_data.get("title", "")
+        sr = _find_sr(pub_id, comp_title)
         pub = sr.publication if sr else None
+
+        if not sr:
+            logger.warning(
+                "Enrichment miss: pub_id=%r title=%r — no match in %d results",
+                pub_id, comp_title[:60], len(similarity_results),
+            )
 
         comparisons.append(
             PublicationComparison(
