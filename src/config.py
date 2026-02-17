@@ -17,9 +17,9 @@ REQUEST_DELAY_SECONDS = 2.0
 MAX_PAGES = 5
 DETAIL_FETCH_TOP_N = 50
 USER_AGENT = (
-    "DTIC-Uniqueness-Analyzer/0.1 "
-    "(Research Proposal Uniqueness Assessment Tool; "
-    "respectful automated access; contact: github.com/dtic-crawl)"
+    "Uncharted-Waters/0.1 "
+    "(Research Landscape Analysis Tool; "
+    "respectful automated access; contact: github.com/that-github-user/uncharted-waters)"
 )
 
 # Embedding models

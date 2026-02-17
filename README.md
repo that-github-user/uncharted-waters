@@ -1,78 +1,61 @@
-# DTIC Uniqueness Analyzer
+---
+title: Uncharted Waters
+emoji: 🌊
+colorFrom: slate
+colorTo: amber
+sdk: docker
+app_port: 7860
+pinned: false
+---
 
-Automated uniqueness assessment for defense research proposals against the [DTIC Dimensions](https://dtic.dimensions.ai) database.
+# Uncharted Waters — DTIC Research Landscape Explorer
 
-Researchers preparing defense R&D proposals often need to survey existing work in DTIC to understand how their project fits into the broader landscape. This tool automates that literature search — it finds semantically similar publications, identifies which military branches have funded related work, and generates a structured assessment report.
+Explore the defense research landscape against the [DTIC Dimensions](https://dtic.dimensions.ai) database. Describe a general research topic and the tool searches DTIC, ranks similar publications by semantic similarity (SPECTER2), and uses Claude to generate a landscape assessment.
 
-## How It Works
-
-1. **You describe your research** (title, abstract, keywords, military branch)
-2. **The tool searches DTIC** using multiple query strategies
-3. **Publications are ranked** by semantic similarity using SPECTER2 embeddings
-4. **Claude analyzes the results** and generates a verdict with detailed comparisons
-
-### Verdicts
+## Verdicts
 
 | Verdict | Meaning |
 |---------|---------|
-| **UNIQUE** | No substantially similar work found in DTIC |
-| **NAVY_UNIQUE** | Similar work exists but was funded by other branches, not Navy |
-| **AT_RISK** | Very similar existing work found — uniqueness may be hard to demonstrate |
-| **NEEDS_REVIEW** | Ambiguous results requiring human expert judgment |
+| **UNIQUE** | Open landscape — no substantially similar work found |
+| **NAVY_UNIQUE** | Branch opportunity — similar work funded by other branches |
+| **AT_RISK** | Well covered — very similar existing work found |
+| **NEEDS_REVIEW** | Mixed coverage — requires human expert judgment |
 
-## Usage: GitHub Actions (Recommended)
+## Live Demo
 
-This is designed to run via GitHub Actions `workflow_dispatch`. Fork the repo, add your API key, and trigger from the Actions tab.
+The app is deployed on [HuggingFace Spaces](https://huggingface.co/spaces). Access requires a shared access code.
 
-### Setup
+## Deploy Your Own
 
-1. **Fork this repository** (or use as a template)
-2. **Add your Anthropic API key** as a repository secret:
-   - Go to Settings > Secrets and variables > Actions
-   - Add a new secret named `ANTHROPIC_API_KEY`
-3. **Trigger the workflow**:
-   - Go to Actions > "DTIC Uniqueness Analysis"
-   - Click "Run workflow"
-   - Fill in your proposal details
-   - Click "Run workflow"
-4. **Get your report**:
-   - The workflow summary shows a quick verdict
-   - Download the full Markdown report from the workflow artifacts
+### HuggingFace Spaces (recommended)
 
-### Security Notes
+1. **Create a Space** at [huggingface.co/new-space](https://huggingface.co/new-space) — select **Docker** as the SDK
+2. **Generate a write token** at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
+3. **Add GitHub secrets** in your fork's Settings > Secrets and variables > Actions:
+   - `HF_TOKEN` — your HuggingFace write token
+4. **Add GitHub variable**:
+   - `HF_SPACE_ID` — e.g. `username/uncharted-waters`
+5. **Add HF Space secrets** (in the Space's Settings tab):
+   - `ANTHROPIC_API_KEY` — your Anthropic API key
+   - `ACCESS_CODE` — a shared code for gated access
 
-- **Your API key** is stored as a GitHub Secret — it is never exposed in logs or code
-- **Your proposal text** is visible in the workflow run inputs (GitHub Actions limitation). If your proposal is sensitive/pre-decisional, use a **private fork** or run locally instead
-- **The source code** contains no secrets — it's safe to keep the repo public
-- **DTIC data** is publicly accessible; the tool only reads public publications
+Pushes to `master`/`main` automatically deploy via the `deploy-hf.yml` workflow.
 
-### Cost
-
-Each analysis run costs approximately **$0.02–0.05** in Anthropic API usage (Claude Sonnet).
-
-## Usage: Local
-
-### Prerequisites
-
-- Python 3.11+
-- An [Anthropic API key](https://console.anthropic.com/)
-
-### Install
+### Local
 
 ```bash
-# Clone the repo
-git clone https://github.com/YOUR_USERNAME/dtic-crawl.git
-cd dtic-crawl
+git clone https://github.com/that-github-user/uncharted-waters.git
+cd uncharted-waters
 
-# Install CPU-only PyTorch (saves ~1.5GB vs full CUDA build)
+# CPU-only PyTorch (saves ~1.5GB)
 pip install torch --index-url https://download.pytorch.org/whl/cpu
-
-# Install dependencies
 pip install -r requirements.txt
 
-# Set your API key
 cp .env.example .env
-# Edit .env and add your ANTHROPIC_API_KEY
+# Edit .env — set ANTHROPIC_API_KEY (ACCESS_CODE is optional locally)
+
+uvicorn src.api:app --reload
+# Open http://localhost:8000
 ```
 
 ### CLI
@@ -80,18 +63,10 @@ cp .env.example .env
 ```bash
 python -m src.cli \
   --title "Autonomous Underwater Vehicle Navigation Using Quantum Sensors" \
-  --abstract "This research proposes developing a novel navigation system..." \
+  --topic "General description of the research area..." \
   --keywords "AUV, quantum sensing, inertial navigation" \
   --branch navy \
   --output reports/
-```
-
-### Web UI (Local)
-
-```bash
-# Set ANTHROPIC_API_KEY in environment or .env
-uvicorn src.api:app --reload
-# Open http://localhost:8000
 ```
 
 ## Configuration
@@ -100,40 +75,17 @@ uvicorn src.api:app --reload
 |---------------------|---------|-------------|
 | `ANTHROPIC_API_KEY` | (required) | Your Anthropic API key |
 | `EMBEDDING_MODEL` | `allenai/specter2_aug2023refresh` | Embedding model to use |
-
-Set `EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2` for a smaller/faster model (~80MB vs ~440MB).
-
-## Project Structure
-
-```
-src/
-├── cli.py              # CLI entry point
-├── pipeline.py         # Orchestrates the full analysis flow
-├── api.py              # FastAPI web interface
-├── config.py           # Configuration constants
-├── models.py           # Pydantic data models
-├── scraper/
-│   ├── base.py         # PublicationSource ABC
-│   └── dimensions.py   # DTIC Dimensions scraper
-├── embeddings/
-│   ├── encoder.py      # SPECTER2 / MiniLM encoding
-│   └── similarity.py   # Cosine similarity ranking
-└── analysis/
-    ├── prompts.py      # LLM prompt templates
-    ├── llm_client.py   # Claude API wrapper
-    └── report.py       # Markdown report generation
-```
+| `ACCESS_CODE` | (unset) | Shared access code; unset = no gate |
 
 ## Running Tests
 
 ```bash
 pip install -r requirements-dev.txt
-pytest tests/
+pytest tests/ -v
 ```
 
-## Limitations
+Tests run automatically on push/PR via the `ci.yml` workflow. All tests mock HTTP — no API keys needed.
 
-- DTIC Dimensions abstracts may be truncated in search results; the tool fetches full abstracts from detail pages for top candidates
-- The scraper respects rate limits (2s delay between requests) — a full run takes 2–5 minutes
-- Embedding similarity is a heuristic; the LLM analysis provides the nuanced assessment
-- Verdicts are advisory — always review with a subject matter expert before submission
+## Cost
+
+Each analysis run costs approximately **$0.02-0.05** in Anthropic API usage (Claude Sonnet).

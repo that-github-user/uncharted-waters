@@ -8,17 +8,17 @@ from datetime import datetime, timezone
 from src.models import AnalysisReport, Verdict
 
 VERDICT_BADGES = {
-    Verdict.UNIQUE: "UNIQUE",
-    Verdict.NAVY_UNIQUE: "NAVY UNIQUE",
-    Verdict.AT_RISK: "AT RISK",
-    Verdict.NEEDS_REVIEW: "NEEDS REVIEW",
+    Verdict.UNIQUE: "OPEN LANDSCAPE",
+    Verdict.NAVY_UNIQUE: "BRANCH OPPORTUNITY",
+    Verdict.AT_RISK: "WELL COVERED",
+    Verdict.NEEDS_REVIEW: "MIXED COVERAGE",
 }
 
 VERDICT_DESCRIPTIONS = {
-    Verdict.UNIQUE: "No substantially similar work was found in the DTIC database.",
-    Verdict.NAVY_UNIQUE: "Similar work exists but was not funded by the Navy.",
-    Verdict.AT_RISK: "Very similar existing work was found. Uniqueness may be difficult to demonstrate.",
-    Verdict.NEEDS_REVIEW: "Partial overlaps found that require human expert judgment.",
+    Verdict.UNIQUE: "No substantially similar work was found in the DTIC database. This topic area has wide opportunity for new research.",
+    Verdict.NAVY_UNIQUE: "Similar work exists but was not funded by the branch of interest. There is an opportunity for this branch to invest.",
+    Verdict.AT_RISK: "This topic area is already well covered in the DTIC database, including work by the branch of interest.",
+    Verdict.NEEDS_REVIEW: "Mixed coverage found — partial overlaps that require human expert judgment to fully assess.",
 }
 
 
@@ -88,14 +88,16 @@ def generate_markdown_report(report: AnalysisReport) -> str:
     exec_summary = _ensure_paragraph_breaks(report.executive_summary)
     exec_summary = _add_executive_summary_links(exec_summary, title_slug_pairs)
 
+    topic_text = report.proposal.topic_description or report.proposal.abstract
+
     lines = [
-        f"# DTIC Uniqueness Assessment Report",
+        f"# DTIC Research Landscape Report",
         f"",
         f"**Generated:** {now}",
         f"",
         f"---",
         f"",
-        f"## Verdict: {badge}",
+        f"## Landscape Assessment: {badge}",
         f"",
         f"**Confidence:** {report.confidence:.0%}",
         f"",
@@ -103,13 +105,13 @@ def generate_markdown_report(report: AnalysisReport) -> str:
         f"",
         f"---",
         f"",
-        f"## Proposal Summary",
+        f"## Topic Summary",
         f"",
         f"**Title:** {report.proposal.title}",
         f"",
-        f"**Military Branch:** {report.proposal.military_branch.value}",
+        f"**Branch of Interest:** {report.proposal.military_branch.value}",
         f"",
-        f"**Abstract:** {report.proposal.abstract}",
+        f"**Topic Description:** {topic_text}",
         f"",
     ]
 
@@ -145,7 +147,7 @@ def generate_markdown_report(report: AnalysisReport) -> str:
         lines.extend([
             f"---",
             f"",
-            f"## Publication-by-Publication Comparison",
+            f"## Publication Analysis",
             f"",
         ])
         for comp in report.comparisons:
@@ -203,7 +205,7 @@ def generate_markdown_report(report: AnalysisReport) -> str:
         lines.extend([
             f"---",
             f"",
-            f"## Points of Differentiation",
+            f"## Identified Gaps & Opportunities",
             f"",
         ])
         for point in report.points_of_differentiation:
@@ -224,9 +226,9 @@ def generate_markdown_report(report: AnalysisReport) -> str:
     lines.extend([
         f"---",
         f"",
-        f"*This report was generated automatically by the DTIC Uniqueness Analyzer. "
-        f"It is intended to assist with research proposal preparation and should be "
-        f"reviewed by a subject matter expert before submission.*",
+        f"*This report was generated automatically by the DTIC Research Landscape Analyzer. "
+        f"It is intended to assist with research landscape exploration and should be "
+        f"reviewed by a subject matter expert.*",
     ])
 
     return "\n".join(lines)
@@ -238,9 +240,9 @@ def generate_step_summary(report: AnalysisReport) -> str:
     exec_summary = _ensure_paragraph_breaks(report.executive_summary)
 
     lines = [
-        f"## DTIC Uniqueness Assessment: {badge}",
+        f"## DTIC Landscape Assessment: {badge}",
         f"",
-        f"**Proposal:** {report.proposal.title}",
+        f"**Topic:** {report.proposal.title}",
         f"",
         f"**Confidence:** {report.confidence:.0%}",
         f"",

@@ -30,6 +30,34 @@ class TestTextFormatting:
         assert "Title" in text
         assert "Abstract" in text
 
+    def test_format_proposal_with_topic_description(self):
+        proposal = UserProposal(
+            title="Test Title",
+            topic_description="A general topic about quantum sensing",
+            keywords=["quantum", "sensing"],
+        )
+        text = format_proposal_text(proposal)
+        assert "Test Title" in text
+        assert "quantum sensing" in text
+
+    def test_format_proposal_topic_preferred_over_abstract(self):
+        proposal = UserProposal(
+            title="Test Title",
+            topic_description="Topic description text",
+            abstract="Abstract text",
+        )
+        text = format_proposal_text(proposal)
+        assert "Topic description text" in text
+        assert "Abstract text" not in text
+
+    def test_format_proposal_falls_back_to_abstract(self):
+        proposal = UserProposal(
+            title="Test Title",
+            abstract="Abstract fallback text",
+        )
+        text = format_proposal_text(proposal)
+        assert "Abstract fallback text" in text
+
     def test_format_publication_with_abstract(self):
         pub = Publication(
             id="pub.1",
@@ -57,6 +85,6 @@ class TestSimilarityRanking:
     def test_rank_empty_publications(self):
         from src.embeddings.similarity import rank_publications
 
-        proposal = UserProposal(title="Test", abstract="Test abstract")
+        proposal = UserProposal(title="Test")
         results = rank_publications(proposal, [], top_k=5, threshold=0.0)
         assert results == []

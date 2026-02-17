@@ -1,4 +1,4 @@
-"""CLI entry point for the DTIC Uniqueness Analyzer."""
+"""CLI entry point for the DTIC Research Landscape Analyzer."""
 
 from __future__ import annotations
 
@@ -15,10 +15,11 @@ from src.pipeline import run_pipeline
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="DTIC Uniqueness Analyzer — assess research proposal uniqueness"
+        description="DTIC Research Landscape Analyzer — explore research coverage and gaps"
     )
-    parser.add_argument("--title", required=True, help="Research proposal title")
-    parser.add_argument("--abstract", required=True, help="Research proposal abstract")
+    parser.add_argument("--title", required=True, help="Research topic title")
+    parser.add_argument("--topic", default="", help="General description of the research area (non-sensitive)")
+    parser.add_argument("--abstract", default="", help="(Deprecated) Use --topic instead")
     parser.add_argument(
         "--keywords",
         default="",
@@ -28,12 +29,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--branch",
         default="navy",
         choices=[b.value for b in MilitaryBranch],
-        help="Sponsoring military branch (default: navy)",
+        help="Branch of interest (default: navy)",
     )
     parser.add_argument(
         "--context",
         default="",
-        help="Additional context about the proposal",
+        help="Additional research focus context",
     )
     parser.add_argument(
         "--output",
@@ -62,10 +63,12 @@ async def main(argv: list[str] | None = None) -> int:
     )
 
     keywords = [k.strip() for k in args.keywords.split(",") if k.strip()]
+    topic_description = args.topic or args.abstract
 
     proposal = UserProposal(
         title=args.title,
         abstract=args.abstract,
+        topic_description=topic_description,
         keywords=keywords,
         military_branch=MilitaryBranch(args.branch),
         additional_context=args.context,
@@ -78,9 +81,9 @@ async def main(argv: list[str] | None = None) -> int:
         with open(args.summary_file, "a", encoding="utf-8") as f:
             f.write(summary)
 
-    # Print verdict to stdout
+    # Print result to stdout
     print(f"\n{'='*60}")
-    print(f"VERDICT: {report.verdict.value}")
+    print(f"LANDSCAPE ASSESSMENT: {report.verdict.value}")
     print(f"CONFIDENCE: {report.confidence:.0%}")
     print(f"{'='*60}")
     print(f"\nFull report saved to: {args.output}/")

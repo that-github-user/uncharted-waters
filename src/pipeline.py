@@ -1,4 +1,4 @@
-"""Orchestrates the full uniqueness analysis pipeline."""
+"""Orchestrates the full research landscape analysis pipeline."""
 
 from __future__ import annotations
 
@@ -32,11 +32,12 @@ def generate_search_queries(proposal: UserProposal) -> list[SearchQuery]:
             )
         )
 
-    # Strategy 3: abstract excerpt (first ~200 chars of key content)
-    abstract_words = proposal.abstract.split()
-    if len(abstract_words) > 10:
-        excerpt = " ".join(abstract_words[:40])
-        queries.append(SearchQuery(text=excerpt, strategy="abstract_excerpt"))
+    # Strategy 3: topic/abstract excerpt (first ~200 chars of key content)
+    description = proposal.topic_description or proposal.abstract
+    desc_words = description.split() if description else []
+    if len(desc_words) > 10:
+        excerpt = " ".join(desc_words[:40])
+        queries.append(SearchQuery(text=excerpt, strategy="topic_excerpt"))
 
     # Strategy 4: title + keywords combined
     if proposal.keywords:
@@ -50,12 +51,12 @@ async def run_pipeline(
     proposal: UserProposal,
     output_dir: str = DEFAULT_OUTPUT_DIR,
 ) -> tuple[AnalysisReport, str, str]:
-    """Run the full uniqueness analysis pipeline.
+    """Run the full research landscape analysis pipeline.
 
     Returns:
         Tuple of (AnalysisReport, markdown_report_text, step_summary_text)
     """
-    logger.info("Starting uniqueness analysis for: %s", proposal.title)
+    logger.info("Starting landscape analysis for: %s", proposal.title)
 
     # Step 1: Generate search queries
     queries = generate_search_queries(proposal)
@@ -68,16 +69,16 @@ async def run_pipeline(
         logger.info("Found %d unique publications", len(publications))
 
         if not publications:
-            logger.warning("No publications found — proposal may be unique by default")
+            logger.warning("No publications found — topic area appears open")
             report = AnalysisReport(
                 proposal=proposal,
                 verdict=Verdict.UNIQUE,
                 confidence=0.5,
                 executive_summary=(
                     "No publications were found in the DTIC database matching "
-                    "the search queries derived from this proposal. This may indicate "
-                    "the research is highly novel, or that the search terms need "
-                    "refinement. Manual verification is recommended."
+                    "the search queries derived from this topic. This suggests "
+                    "an open landscape with wide opportunity, or that the search "
+                    "terms need refinement. Manual verification is recommended."
                 ),
                 total_results_found=0,
                 results_analyzed=0,
@@ -122,7 +123,7 @@ def _save_report(markdown: str, title: str, output_dir: str) -> Path:
     # Sanitize filename
     safe_title = "".join(c if c.isalnum() or c in " -_" else "" for c in title)
     safe_title = safe_title.strip().replace(" ", "_")[:80]
-    filename = f"uniqueness_report_{safe_title}.md"
+    filename = f"landscape_report_{safe_title}.md"
     filepath = Path(output_dir) / filename
     filepath.write_text(markdown, encoding="utf-8")
     logger.info("Report saved to %s", filepath)

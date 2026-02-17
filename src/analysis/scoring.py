@@ -1,8 +1,10 @@
-"""Deterministic scoring functions for uniqueness assessment.
+"""Deterministic scoring functions for landscape assessment.
 
 These replace LLM-generated metrics (verdict, confidence, overlap_rating)
 with reproducible, rules-based computation from similarity scores and
-branch data.
+branch data. The scoring maps naturally to the landscape framing:
+UNIQUE = open landscape, NAVY_UNIQUE = branch opportunity,
+AT_RISK = well covered, NEEDS_REVIEW = mixed coverage.
 """
 
 from __future__ import annotations

@@ -1,4 +1,4 @@
-"""Pydantic models for the DTIC Uniqueness Analyzer."""
+"""Pydantic models for the DTIC Research Landscape Analyzer."""
 
 from __future__ import annotations
 
@@ -26,10 +26,11 @@ class Verdict(str, Enum):
 
 
 class UserProposal(BaseModel):
-    """The scientist's research proposal input."""
+    """The user's research topic input."""
 
     title: str
-    abstract: str
+    abstract: str = ""
+    topic_description: str = ""
     keywords: list[str] = Field(default_factory=list)
     military_branch: MilitaryBranch = MilitaryBranch.NAVY
     additional_context: str = ""
@@ -99,4 +100,4 @@ class SearchQuery(BaseModel):
     """A generated search query for DTIC."""
 
     text: str
-    strategy: str  # "title", "keywords", "abstract_excerpt", "combined"
+    strategy: str  # "title", "keywords", "topic_excerpt", "combined"

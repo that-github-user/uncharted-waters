@@ -33,7 +33,6 @@ class TestQueryGeneration:
     def test_generates_keyword_query(self):
         proposal = UserProposal(
             title="Test",
-            abstract="Abstract",
             keywords=["AUV", "sonar"],
         )
         queries = generate_search_queries(proposal)
@@ -42,23 +41,32 @@ class TestQueryGeneration:
         kw_query = next(q for q in queries if q.strategy == "keywords")
         assert "AUV" in kw_query.text
 
-    def test_generates_abstract_excerpt(self):
+    def test_generates_topic_excerpt(self):
+        proposal = UserProposal(
+            title="Test",
+            topic_description=" ".join(["word"] * 50),
+        )
+        queries = generate_search_queries(proposal)
+        strategies = [q.strategy for q in queries]
+        assert "topic_excerpt" in strategies
+
+    def test_generates_topic_excerpt_from_abstract_fallback(self):
         proposal = UserProposal(
             title="Test",
             abstract=" ".join(["word"] * 50),
         )
         queries = generate_search_queries(proposal)
-        titles = [q.strategy for q in queries]
-        assert "abstract_excerpt" in titles
+        strategies = [q.strategy for q in queries]
+        assert "topic_excerpt" in strategies
 
-    def test_no_abstract_excerpt_for_short_abstracts(self):
+    def test_no_topic_excerpt_for_short_descriptions(self):
         proposal = UserProposal(
             title="Test",
-            abstract="Short abstract",
+            topic_description="Short description",
         )
         queries = generate_search_queries(proposal)
-        titles = [q.strategy for q in queries]
-        assert "abstract_excerpt" not in titles
+        strategies = [q.strategy for q in queries]
+        assert "topic_excerpt" not in strategies
 
 
 class TestReportGeneration:
@@ -67,13 +75,13 @@ class TestReportGeneration:
         return AnalysisReport(
             proposal=UserProposal(
                 title="Test Proposal",
-                abstract="Test abstract",
+                topic_description="Test topic description",
                 keywords=["kw1", "kw2"],
                 military_branch=MilitaryBranch.NAVY,
             ),
             verdict=Verdict.NAVY_UNIQUE,
             confidence=0.85,
-            executive_summary="This proposal appears to be Navy-unique.",
+            executive_summary="This topic area presents a branch opportunity.",
             comparisons=[
                 PublicationComparison(
                     publication_id="pub.123",
@@ -93,13 +101,13 @@ class TestReportGeneration:
 
     def test_markdown_report_contains_verdict(self, sample_report):
         md = generate_markdown_report(sample_report)
-        assert "NAVY UNIQUE" in md
+        assert "BRANCH OPPORTUNITY" in md
         assert "85%" in md
 
-    def test_markdown_report_contains_proposal(self, sample_report):
+    def test_markdown_report_contains_topic(self, sample_report):
         md = generate_markdown_report(sample_report)
         assert "Test Proposal" in md
-        assert "Test abstract" in md
+        assert "Test topic description" in md
 
     def test_markdown_report_contains_comparisons(self, sample_report):
         md = generate_markdown_report(sample_report)
@@ -111,11 +119,24 @@ class TestReportGeneration:
         md = generate_markdown_report(sample_report)
         summary = generate_step_summary(sample_report)
         assert len(summary) < len(md)
-        assert "NAVY UNIQUE" in summary
+        assert "BRANCH OPPORTUNITY" in summary
 
     def test_markdown_report_contains_disclaimer(self, sample_report):
         md = generate_markdown_report(sample_report)
         assert "subject matter expert" in md
+
+    def test_markdown_report_landscape_labels(self, sample_report):
+        md = generate_markdown_report(sample_report)
+        assert "Landscape Assessment:" in md
+        assert "Topic Summary" in md
+        assert "Topic Description:" in md
+        assert "Identified Gaps & Opportunities" in md
+        assert "Publication Analysis" in md
+
+    def test_step_summary_landscape_labels(self, sample_report):
+        summary = generate_step_summary(sample_report)
+        assert "DTIC Landscape Assessment:" in summary
+        assert "Topic:" in summary
 
 
 def _make_result(score: float, branches: list[MilitaryBranch] | None = None) -> SimilarityResult:

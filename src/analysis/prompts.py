@@ -1,25 +1,26 @@
-"""Prompt templates for LLM uniqueness analysis."""
+"""Prompt templates for LLM landscape analysis."""
 
 SYSTEM_PROMPT = """\
-You are an expert research analyst specializing in defense research uniqueness assessment. \
-Your task is to evaluate whether a proposed research project is sufficiently unique compared \
-to existing publications in the Defense Technical Information Center (DTIC) database.
+You are an expert research analyst specializing in defense research landscape assessment. \
+Your task is to analyze the existing publication landscape in the Defense Technical Information \
+Center (DTIC) database for a given research topic, identifying coverage patterns, gaps, and \
+opportunities.
 
-You must provide a structured assessment with one of four verdicts:
+You must provide a structured assessment with one of four landscape categories:
 
-- **UNIQUE**: No substantially similar work exists in the DTIC database. The proposal addresses \
-a genuinely novel research question or approach.
-- **NAVY_UNIQUE**: Similar work exists in DTIC, but it was funded by other military branches \
-(Army, Air Force, DARPA, etc.) — not by the Navy. The Navy does not appear to have funded \
-equivalent research.
-- **AT_RISK**: Very similar work already exists in DTIC, potentially including Navy-funded work. \
-The proposal may have difficulty demonstrating uniqueness.
-- **NEEDS_REVIEW**: The evidence is ambiguous. There are partial overlaps that require human \
-expert judgment to assess.
+- **UNIQUE**: Open landscape — no substantially similar work exists in the DTIC database. \
+The topic area has wide opportunity for new research.
+- **NAVY_UNIQUE**: Branch opportunity — similar work exists in DTIC, but it was funded by \
+other military branches (Army, Air Force, DARPA, etc.) — not by the branch of interest. \
+There is an opportunity for the specified branch to invest in this area.
+- **AT_RISK**: Well covered — the topic area is already well covered in DTIC, potentially \
+including work funded by the branch of interest.
+- **NEEDS_REVIEW**: Mixed coverage — the evidence is ambiguous. There are partial overlaps \
+that require human expert judgment to fully assess the landscape.
 
 Be thorough but fair. Consider that two papers can share a broad topic area while pursuing \
-genuinely different research questions, methods, or applications. Focus on substantive overlap, \
-not superficial keyword matches."""
+genuinely different research questions, methods, or applications. Focus on substantive \
+relevance, not superficial keyword matches."""
 
 
 def build_analysis_prompt(
@@ -31,7 +32,7 @@ def build_analysis_prompt(
     publications_text: str,
     precomputed_metrics: str = "",
 ) -> str:
-    """Build the user prompt for uniqueness analysis."""
+    """Build the user prompt for landscape analysis."""
     keywords_str = ", ".join(proposal_keywords) if proposal_keywords else "None provided"
 
     metrics_section = ""
@@ -41,25 +42,25 @@ def build_analysis_prompt(
 
 ## Pre-Computed Metrics
 
-The following verdict, confidence, and per-publication overlap ratings have been \
-computed deterministically from the cosine similarity scores. Reference these in your \
+The following landscape assessment, confidence, and per-publication relevance ratings have \
+been computed deterministically from the cosine similarity scores. Reference these in your \
 narrative text — do NOT override them.
 
 {precomputed_metrics}
 """
 
     return f"""\
-## Research Proposal Under Assessment
+## Research Topic Under Analysis
 
 **Title:** {proposal_title}
-**Abstract:** {proposal_abstract}
+**Topic Description:** {proposal_abstract}
 **Keywords:** {keywords_str}
-**Sponsoring Branch:** {proposal_branch}
-**Additional Context:** {additional_context or "None provided"}
+**Branch of Interest:** {proposal_branch}
+**Research Focus:** {additional_context or "None provided"}
 
 ---
 
-## Similar Publications Found in DTIC
+## Existing DTIC Publications
 
 {publications_text}
 {metrics_section}
@@ -67,30 +68,30 @@ narrative text — do NOT override them.
 
 ## Instructions
 
-Analyze the proposal against the publications above and provide your assessment in the \
-following JSON format. Do NOT wrap in markdown code fences.
+Analyze the research topic against the publications above and provide your landscape \
+assessment in the following JSON format. Do NOT wrap in markdown code fences.
 
 {{
-  "executive_summary": "2-3 paragraph summary of the uniqueness assessment",
+  "executive_summary": "2-3 paragraph summary of the research landscape and gap analysis",
   "comparisons": [
     {{
       "publication_id": "pub id",
       "title": "pub title",
-      "similarity_assessment": "1-2 sentence description of how this pub relates to the proposal",
+      "similarity_assessment": "1-2 sentence description of how this pub relates to the topic",
       "key_differences": ["difference 1", "difference 2"],
       "key_overlaps": ["overlap 1", "overlap 2"]
     }}
   ],
   "points_of_differentiation": [
-    "What makes this proposal distinct from existing work (list 3-5 points)"
+    "Identified gaps and opportunities in the existing landscape (list 3-5 points)"
   ],
   "recommendations": [
-    "Actionable recommendations for strengthening the uniqueness argument (list 2-4 points)"
+    "Actionable recommendations for pursuing research in this area (list 2-4 points)"
   ]
 }}
 
-Evaluate EVERY publication listed above. Be specific about overlaps and differences. \
-Consider the sponsoring branch for NAVY_UNIQUE determinations."""
+Evaluate EVERY publication listed above. Be specific about relevance and gaps. \
+Consider the branch of interest for branch opportunity determinations."""
 
 
 def format_publications_for_prompt(

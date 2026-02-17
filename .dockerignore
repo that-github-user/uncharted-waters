@@ -1,0 +1,17 @@
+.git
+.github
+.gitignore
+.env
+.env.example
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+tests/
+reports/
+*.md
+debug_last_response.json
+.claude/
+CLAUDE.md
+pyproject.toml

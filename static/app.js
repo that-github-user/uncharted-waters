@@ -1,5 +1,5 @@
 /* ============================================================
-   DTIC Uniqueness Analyzer — Frontend Logic
+   DTIC Research Landscape Explorer — Frontend Logic
    ============================================================ */
 
 // Configure marked.js to treat single newlines as <br> (safety net)
@@ -22,21 +22,12 @@ const errorSection = document.getElementById("error");
 const formSection = document.getElementById("form-section");
 const howSection = document.getElementById("how-it-works");
 
-// Abstract character counter
-const abstractField = document.getElementById("abstract");
-const abstractCount = document.getElementById("abstract-count");
-
-abstractField.addEventListener("input", () => {
-  const len = abstractField.value.length;
-  abstractCount.textContent = `${len.toLocaleString()} character${len !== 1 ? "s" : ""}`;
-});
-
 // Verdict display labels
 const VERDICT_LABELS = {
-  UNIQUE: "Unique",
-  NAVY_UNIQUE: "Navy Unique",
-  AT_RISK: "At Risk",
-  NEEDS_REVIEW: "Needs Review",
+  UNIQUE: "Open Landscape",
+  NAVY_UNIQUE: "Branch Opportunity",
+  AT_RISK: "Well Covered",
+  NEEDS_REVIEW: "Mixed Coverage",
 };
 
 // ---- Loading stage progression ----
@@ -110,7 +101,7 @@ form.addEventListener("submit", async (e) => {
 
   const payload = {
     title: form.title.value.trim(),
-    abstract: form.abstract.value.trim(),
+    topic_description: (form.topic_description ? form.topic_description.value.trim() : ""),
     keywords: keywords,
     military_branch: form.military_branch.value,
     additional_context: form.additional_context.value.trim(),
@@ -130,7 +121,7 @@ form.addEventListener("submit", async (e) => {
   loadingSection.scrollIntoView({ behavior: "smooth", block: "start" });
 
   try {
-    const resp = await fetch("/api/analyze", {
+    const resp = await fetch("/api/explore", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -448,7 +439,7 @@ document.getElementById("download-btn").addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "dtic_uniqueness_report.md";
+  a.download = "dtic_landscape_report.md";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

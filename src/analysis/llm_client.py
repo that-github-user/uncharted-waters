@@ -1,4 +1,4 @@
-"""Claude API wrapper for uniqueness analysis."""
+"""Claude API wrapper for landscape analysis."""
 
 from __future__ import annotations
 
@@ -70,15 +70,15 @@ def _build_precomputed_metrics_text(
 ) -> str:
     """Format pre-computed metrics as text for the LLM prompt."""
     lines = [
-        f"**Verdict:** {verdict.value}",
+        f"**Landscape Assessment:** {verdict.value}",
         f"**Confidence:** {confidence:.2f}",
         "",
-        "**Per-Publication Overlap Ratings:**",
+        "**Per-Publication Relevance Ratings:**",
     ]
     for sr, rating in zip(similarity_results, overlap_ratings):
         lines.append(
             f"- {sr.publication.id} ({sr.publication.title[:60]}): "
-            f"similarity={sr.similarity_score:.3f} → overlap={rating}"
+            f"similarity={sr.similarity_score:.3f} → relevance={rating}"
         )
     return "\n".join(lines)
 
@@ -88,7 +88,7 @@ async def analyze_uniqueness(
     similarity_results: list[SimilarityResult],
     search_queries_used: list[str],
 ) -> AnalysisReport:
-    """Send the proposal and similar publications to Claude for analysis."""
+    """Send the topic and similar publications to Claude for landscape analysis."""
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise ValueError("ANTHROPIC_API_KEY environment variable is required")
@@ -117,7 +117,7 @@ async def analyze_uniqueness(
 
     user_prompt = build_analysis_prompt(
         proposal_title=proposal.title,
-        proposal_abstract=proposal.abstract,
+        proposal_abstract=proposal.topic_description or proposal.abstract,
         proposal_keywords=proposal.keywords,
         proposal_branch=proposal.military_branch.value,
         additional_context=proposal.additional_context,

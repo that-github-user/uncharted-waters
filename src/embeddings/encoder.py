@@ -50,7 +50,10 @@ def get_model() -> SentenceTransformer:
 
 def format_proposal_text(proposal: UserProposal) -> str:
     """Format a proposal into a single text string for embedding."""
-    parts = [proposal.title, proposal.abstract]
+    parts = [proposal.title]
+    description = proposal.topic_description or proposal.abstract
+    if description:
+        parts.append(description)
     if proposal.keywords:
         parts.append("Keywords: " + ", ".join(proposal.keywords))
     if proposal.additional_context:

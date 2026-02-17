@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DTIC Uniqueness Analyzer</title>
+  <title>DTIC Research Landscape Explorer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -28,7 +28,7 @@
           </svg>
         </div>
         <div>
-          <h1 class="logo-text">DTIC Uniqueness Analyzer</h1>
+          <h1 class="logo-text">DTIC Research Landscape Explorer</h1>
           <p class="logo-sub">Defense Technical Information Center</p>
         </div>
       </div>
@@ -48,8 +48,8 @@
         <div class="step">
           <div class="step-num">01</div>
           <div class="step-body">
-            <h3>Describe</h3>
-            <p>Enter your research proposal title, abstract, and keywords</p>
+            <h3>Define</h3>
+            <p>Enter your research topic, keywords, and branch of interest</p>
           </div>
         </div>
         <div class="step-connector" aria-hidden="true"></div>
@@ -73,7 +73,7 @@
           <div class="step-num">04</div>
           <div class="step-body">
             <h3>Assess</h3>
-            <p>AI analyzes top matches and generates a uniqueness verdict</p>
+            <p>AI identifies coverage patterns, gaps, and opportunities</p>
           </div>
         </div>
       </div>
@@ -81,31 +81,28 @@
 
     <!-- Analysis Form -->
     <section class="form-section" id="form-section">
-      <h2 class="section-label">Research Proposal</h2>
+      <h2 class="section-label">Research Topic</h2>
       <form id="analyze-form" class="analyze-form">
         <div class="form-card">
 
           <div class="field">
             <label for="title">
-              Proposal Title
+              Research Topic
               <span class="required">Required</span>
             </label>
             <input type="text" id="title" name="title" required
                    placeholder="e.g., Autonomous Underwater Vehicle Navigation Using Quantum Sensors">
-            <span class="field-hint">The working title of your research proposal</span>
+            <span class="field-hint">The research topic or area you want to explore</span>
           </div>
 
           <div class="field">
-            <label for="abstract">
-              Abstract
-              <span class="required">Required</span>
+            <label for="topic_description">
+              Topic Description
             </label>
-            <textarea id="abstract" name="abstract" rows="8" required
-                      placeholder="Paste your full research proposal abstract here..."></textarea>
-            <div class="field-meta">
-              <span class="field-hint">A detailed abstract improves search accuracy</span>
-              <span class="char-count" id="abstract-count">0 characters</span>
-            </div>
+            <textarea id="topic_description" name="topic_description" rows="4"
+                      placeholder="Describe the general research area, approach, or methodology you are interested in..."></textarea>
+            <div class="field-warning">Do NOT include pre-decisional or sensitive content. Describe only the general area of interest.</div>
+            <span class="field-hint">Optional — improves search relevance</span>
           </div>
 
           <div class="field">
@@ -117,7 +114,7 @@
 
           <div class="field-row">
             <div class="field">
-              <label for="military_branch">Sponsoring Branch</label>
+              <label for="military_branch">Branch of Interest</label>
               <div class="select-wrap">
                 <select id="military_branch" name="military_branch">
                   <option value="navy" selected>Navy</option>
@@ -132,20 +129,21 @@
                   <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
-              <span class="field-hint">Used to determine if similar work has already been funded by your branch specifically</span>
+              <span class="field-hint">Used to identify branch-specific coverage and opportunities</span>
             </div>
           </div>
 
           <div class="field">
-            <label for="additional_context">Additional Context</label>
+            <label for="additional_context">Research Focus</label>
             <textarea id="additional_context" name="additional_context" rows="3"
-                      placeholder="Any additional context about your approach, methodology, or what makes this work distinct..."></textarea>
+                      placeholder="Any additional context about the specific focus area, methodology, or application domain..."></textarea>
+            <div class="field-warning">Keep to general research themes. Avoid including sensitive or pre-decisional content.</div>
           </div>
 
         </div>
 
         <button type="submit" id="submit-btn" class="submit-btn">
-          <span class="btn-text">Run Uniqueness Analysis</span>
+          <span class="btn-text">Explore Research Landscape</span>
           <svg class="btn-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path d="M3 9h12M11 5l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -175,7 +173,7 @@
               <div class="stage-dot"></div>
             </div>
             <div class="stage-info">
-              <span class="stage-name">Computing semantic similarity</span>
+              <span class="stage-name">Computing topic relevance</span>
               <span class="stage-desc">Encoding and ranking publications with SPECTER2 embeddings</span>
             </div>
           </div>
@@ -184,8 +182,8 @@
               <div class="stage-dot"></div>
             </div>
             <div class="stage-info">
-              <span class="stage-name">Generating uniqueness assessment</span>
-              <span class="stage-desc">AI analysis of top matches against your proposal</span>
+              <span class="stage-name">Analyzing research landscape</span>
+              <span class="stage-desc">Identifying gaps &amp; opportunities in existing coverage</span>
             </div>
           </div>
           <div class="stage" id="stage-report" data-status="pending">
@@ -208,7 +206,7 @@
     <section id="results" class="results-section hidden">
 
       <div class="verdict-card" id="verdict-card">
-        <div class="verdict-label">Assessment Verdict</div>
+        <div class="verdict-label">Landscape Assessment</div>
         <div class="verdict-value" id="verdict-value"></div>
         <div class="verdict-confidence" id="verdict-confidence"></div>
         <div class="verdict-summary" id="verdict-summary"></div>
@@ -223,13 +221,13 @@
             </div>
           </div>
           <div class="chart-card">
-            <div class="chart-title">Overlap Rating Breakdown</div>
+            <div class="chart-title">Relevance Distribution</div>
             <div class="chart-container chart-container-sm">
               <canvas id="chart-overlap"></canvas>
             </div>
           </div>
           <div class="chart-card chart-card-wide">
-            <div class="chart-title">Similarity Score Distribution</div>
+            <div class="chart-title">Topic Relevance Scores</div>
             <div class="chart-container chart-container-bar">
               <canvas id="chart-similarity"></canvas>
             </div>
@@ -249,7 +247,7 @@
             <path d="M2 8a6 6 0 0111.5-2.3M14 8a6 6 0 01-11.5 2.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             <path d="M13 2v4h-4M3 14v-4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          New Analysis
+          New Search
         </button>
       </div>
 
@@ -279,7 +277,7 @@
   </main>
 
   <footer class="site-footer">
-    <p>DTIC Uniqueness Analyzer &middot; Open Source &middot; <a href="https://github.com/that-github-user/dtic-crawl" target="_blank" rel="noopener">GitHub</a></p>
+    <p>DTIC Research Landscape Explorer &middot; Open Source &middot; <a href="https://github.com/that-github-user/uncharted-waters" target="_blank" rel="noopener">GitHub</a></p>
   </footer>
 
   <script src="/static/app.js?v=5"></script>

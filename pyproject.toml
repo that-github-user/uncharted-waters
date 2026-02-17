@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dtic-uniqueness-analyzer"
+name = "uncharted-waters"
 version = "0.1.0"
-description = "Automated DTIC uniqueness assessment for research proposals"
+description = "Research landscape analysis against the DTIC Dimensions database"
 requires-python = ">=3.11"
 
 [tool.pytest.ini_options]

@@ -1,5 +1,5 @@
 /* ============================================================
-   DTIC Uniqueness Analyzer — Intelligence Briefing Aesthetic
+   DTIC Research Landscape Explorer — Intelligence Briefing Aesthetic
    Dark slate, amber accents, authoritative typography
    ============================================================ */
 
@@ -351,6 +351,16 @@ select:focus {
   font-family: var(--font-mono);
   font-size: 0.7rem;
   color: var(--text-dim);
+}
+
+.field-warning {
+  font-size: 0.75rem;
+  color: var(--yellow-500, #f0c674);
+  margin-top: 0.25rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(240, 198, 116, 0.08);
+  border-radius: 4px;
+  border-left: 2px solid var(--yellow-500, #f0c674);
 }
 
 .field-row {
