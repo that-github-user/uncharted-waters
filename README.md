@@ -1,8 +1,8 @@
 ---
 title: Uncharted Waters
 emoji: 🌊
-colorFrom: slate
-colorTo: amber
+colorFrom: gray
+colorTo: yellow
 sdk: docker
 app_port: 7860
 pinned: false
