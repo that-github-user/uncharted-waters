@@ -51,7 +51,7 @@ async def _run_explore(request: ExploreRequest):
         military_branch=request.military_branch,
         additional_context=request.additional_context,
     )
-    report, markdown, summary = await run_pipeline(proposal)
+    report, markdown, summary, landscape_map = await run_pipeline(proposal)
     return {
         "verdict": report.verdict.value,
         "confidence": report.confidence,
@@ -59,6 +59,7 @@ async def _run_explore(request: ExploreRequest):
         "summary": report.executive_summary,
         "step_summary": summary,
         "report": report.model_dump(),
+        "landscape_map": landscape_map,
     }
 
 

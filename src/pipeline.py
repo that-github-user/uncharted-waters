@@ -6,9 +6,11 @@ import logging
 import os
 from pathlib import Path
 
+import numpy as np
+
 from src.analysis.llm_client import analyze_uniqueness
 from src.analysis.report import generate_markdown_report, generate_step_summary
-from src.config import DEFAULT_OUTPUT_DIR
+from src.config import DEFAULT_OUTPUT_DIR, SIMILARITY_THRESHOLD
 from src.embeddings.similarity import rank_publications
 from src.models import AnalysisReport, SearchQuery, UserProposal, Verdict
 from src.scraper.dimensions import DimensionsScraper
@@ -47,14 +49,59 @@ def generate_search_queries(proposal: UserProposal) -> list[SearchQuery]:
     return queries
 
 
+def _compute_landscape_map(ranking) -> list[dict]:
+    """Project embeddings to 2D via PCA for the landscape scatter plot."""
+    if ranking.proposal_embedding.size == 0 or ranking.pub_embeddings.size == 0:
+        return []
+
+    # Combine proposal + all publication embeddings
+    all_embeddings = np.vstack([
+        ranking.proposal_embedding.reshape(1, -1),
+        ranking.pub_embeddings,
+    ])
+
+    # PCA to 2D (mean-center, then top-2 singular vectors)
+    centered = all_embeddings - all_embeddings.mean(axis=0)
+    try:
+        _, _, Vt = np.linalg.svd(centered, full_matrices=False)
+        projected = centered @ Vt[:2].T
+    except np.linalg.LinAlgError:
+        return []
+
+    points = []
+
+    # First point is the query
+    points.append({
+        "x": float(projected[0, 0]),
+        "y": float(projected[0, 1]),
+        "type": "query",
+        "label": "Your Topic",
+        "similarity": 1.0,
+    })
+
+    # Remaining points are publications
+    for i, pub in enumerate(ranking.publications):
+        sim = float(ranking.similarities[i]) if i < len(ranking.similarities) else 0.0
+        above = sim >= ranking.threshold
+        points.append({
+            "x": float(projected[i + 1, 0]),
+            "y": float(projected[i + 1, 1]),
+            "type": "relevant" if above else "background",
+            "label": pub.title[:60],
+            "similarity": round(sim, 3),
+        })
+
+    return points
+
+
 async def run_pipeline(
     proposal: UserProposal,
     output_dir: str = DEFAULT_OUTPUT_DIR,
-) -> tuple[AnalysisReport, str, str]:
+) -> tuple[AnalysisReport, str, str, list[dict]]:
     """Run the full research landscape analysis pipeline.
 
     Returns:
-        Tuple of (AnalysisReport, markdown_report_text, step_summary_text)
+        Tuple of (AnalysisReport, markdown_report_text, step_summary_text, landscape_map)
     """
     logger.info("Starting landscape analysis for: %s", proposal.title)
 
@@ -87,14 +134,15 @@ async def run_pipeline(
             md = generate_markdown_report(report)
             summary = generate_step_summary(report)
             _save_report(md, proposal.title, output_dir)
-            return report, md, summary
+            return report, md, summary, []
 
         # Step 3: Fetch full abstracts for top candidates
         publications = await scraper.fetch_full_abstracts_batch(publications)
 
     # Step 4: Rank by embedding similarity
     logger.info("Computing embedding similarity...")
-    similarity_results = rank_publications(proposal, publications)
+    ranking = rank_publications(proposal, publications)
+    similarity_results = ranking.results
     logger.info("Top %d publications ranked", len(similarity_results))
 
     # Step 5: LLM analysis
@@ -108,13 +156,16 @@ async def run_pipeline(
     md = generate_markdown_report(report)
     summary = generate_step_summary(report)
 
+    # Step 7: Compute landscape map for visualization
+    landscape_map = _compute_landscape_map(ranking)
+
     # Save to file
     _save_report(md, proposal.title, output_dir)
 
     logger.info("Analysis complete. Verdict: %s (confidence: %.0f%%)",
                 report.verdict.value, report.confidence * 100)
 
-    return report, md, summary
+    return report, md, summary, landscape_map
 
 
 def _save_report(markdown: str, title: str, output_dir: str) -> Path:

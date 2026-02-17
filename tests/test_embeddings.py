@@ -86,5 +86,5 @@ class TestSimilarityRanking:
         from src.embeddings.similarity import rank_publications
 
         proposal = UserProposal(title="Test")
-        results = rank_publications(proposal, [], top_k=5, threshold=0.0)
-        assert results == []
+        ranking = rank_publications(proposal, [], top_k=5, threshold=0.0)
+        assert ranking.results == []

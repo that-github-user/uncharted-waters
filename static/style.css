@@ -875,6 +875,10 @@ select:focus {
   max-height: 350px;
 }
 
+.chart-container-map {
+  height: 420px;
+}
+
 /* ---- Error ---- */
 .error-section {
   margin-top: 2rem;

@@ -77,7 +77,7 @@ async def main(argv: list[str] | None = None) -> int:
         additional_context=args.context,
     )
 
-    report, markdown, summary = await run_pipeline(proposal, output_dir=args.output)
+    report, markdown, summary, _ = await run_pipeline(proposal, output_dir=args.output)
 
     # Write step summary if requested (GitHub Actions)
     if args.summary_file:

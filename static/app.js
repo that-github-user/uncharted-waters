@@ -419,7 +419,126 @@ function renderCharts(data) {
     const barContainer = document.getElementById("chart-similarity").parentElement;
     barContainer.style.height = Math.max(180, sorted.length * 28 + 40) + "px";
   }
+
+  // --- 4. Landscape Map (scatter plot) ---
+  renderLandscapeMap(data);
 }
+
+function renderLandscapeMap(data) {
+  const mapCard = document.getElementById("landscape-map-card");
+  const points = data.landscape_map || [];
+  if (points.length < 2) {
+    mapCard.classList.add("hidden");
+    return;
+  }
+  mapCard.classList.remove("hidden");
+
+  const mapCtx = document.getElementById("chart-landscape").getContext("2d");
+
+  const queryPoints = points.filter((p) => p.type === "query");
+  const relevantPoints = points.filter((p) => p.type === "relevant");
+  const bgPoints = points.filter((p) => p.type === "background");
+
+  const datasets = [];
+
+  // Background publications (below threshold)
+  if (bgPoints.length > 0) {
+    datasets.push({
+      label: "Below Threshold",
+      data: bgPoints.map((p) => ({ x: p.x, y: p.y, label: p.label, similarity: p.similarity })),
+      backgroundColor: "rgba(61, 90, 128, 0.25)",
+      borderColor: "rgba(61, 90, 128, 0.4)",
+      borderWidth: 1,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+    });
+  }
+
+  // Relevant publications (above threshold), colored by similarity
+  if (relevantPoints.length > 0) {
+    datasets.push({
+      label: "Relevant Publications",
+      data: relevantPoints.map((p) => ({ x: p.x, y: p.y, label: p.label, similarity: p.similarity })),
+      backgroundColor: relevantPoints.map((p) => {
+        if (p.similarity >= 0.6) return "rgba(240, 113, 120, 0.8)";
+        if (p.similarity >= 0.45) return "rgba(240, 198, 116, 0.8)";
+        return "rgba(62, 207, 142, 0.7)";
+      }),
+      borderColor: relevantPoints.map((p) => {
+        if (p.similarity >= 0.6) return "#f07178";
+        if (p.similarity >= 0.45) return "#f0c674";
+        return "#3ecf8e";
+      }),
+      borderWidth: 1.5,
+      pointRadius: relevantPoints.map((p) => 5 + p.similarity * 8),
+      pointHoverRadius: 10,
+    });
+  }
+
+  // Query point (star-like, amber)
+  if (queryPoints.length > 0) {
+    datasets.push({
+      label: "Your Topic",
+      data: queryPoints.map((p) => ({ x: p.x, y: p.y, label: p.label, similarity: p.similarity })),
+      backgroundColor: "#d4a853",
+      borderColor: "#e0be72",
+      borderWidth: 2,
+      pointRadius: 12,
+      pointHoverRadius: 14,
+      pointStyle: "star",
+    });
+  }
+
+  chartInstances.push(
+    new Chart(mapCtx, {
+      type: "scatter",
+      data: { datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            display: false,
+            grid: { display: false },
+          },
+          y: {
+            display: false,
+            grid: { display: false },
+          },
+        },
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              color: "#94b0cf",
+              font: { family: "'IBM Plex Sans', sans-serif", size: 11 },
+              padding: 14,
+              usePointStyle: true,
+              pointStyleWidth: 10,
+            },
+          },
+          tooltip: {
+            backgroundColor: "#172234",
+            titleColor: "#e2ebf3",
+            bodyColor: "#c1d3e6",
+            borderColor: "#1e2f45",
+            borderWidth: 1,
+            callbacks: {
+              title: (items) => {
+                const raw = items[0]?.raw;
+                return raw?.label || "";
+              },
+              label: (ctx) => {
+                const raw = ctx.raw;
+                if (raw.similarity >= 1.0) return "Query point";
+                return `Similarity: ${raw.similarity.toFixed(3)}`;
+              },
+            },
+          },
+        },
+      },
+    })
+  );
 
 // ---- Error display ----
 
