@@ -10,11 +10,11 @@ You must provide a structured assessment with one of four landscape categories:
 
 - **UNIQUE**: Open landscape — no substantially similar work exists in the DTIC database. \
 The topic area has wide opportunity for new research.
-- **NAVY_UNIQUE**: Branch opportunity — similar work exists in DTIC, but it was funded by \
+- **NAVY_UNIQUE**: Branch opportunity — related work exists in DTIC but was funded by \
 other military branches (Army, Air Force, DARPA, etc.) — not by the branch of interest. \
-There is an opportunity for the specified branch to invest in this area.
-- **AT_RISK**: Well covered — the topic area is already well covered in DTIC, potentially \
-including work funded by the branch of interest.
+There may be an opportunity for the specified branch to invest in this area.
+- **AT_RISK**: Well covered — the topic area is already well covered in the existing \
+research landscape, regardless of which branch funded the work.
 - **NEEDS_REVIEW**: Mixed coverage — the evidence is ambiguous. There are partial overlaps \
 that require human expert judgment to fully assess the landscape.
 

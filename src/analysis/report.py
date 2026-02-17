@@ -16,8 +16,8 @@ VERDICT_BADGES = {
 
 VERDICT_DESCRIPTIONS = {
     Verdict.UNIQUE: "No substantially similar work was found. This topic area has wide opportunity for new research.",
-    Verdict.NAVY_UNIQUE: "Similar work exists but was not funded by the branch of interest. There is an opportunity for this branch to invest.",
-    Verdict.AT_RISK: "This topic area is already well covered, including work by the branch of interest.",
+    Verdict.NAVY_UNIQUE: "Related work exists in other branches but not the branch of interest. There may be an opportunity to invest in this area.",
+    Verdict.AT_RISK: "This topic area is already well covered in the existing research landscape.",
     Verdict.NEEDS_REVIEW: "Mixed coverage found — partial overlaps that require human expert judgment to fully assess.",
 }
 

@@ -184,12 +184,12 @@ class TestScoring:
         verdict = compute_verdict(results, ratings, "navy")
         assert verdict == Verdict.AT_RISK
 
-    def test_verdict_navy_unique(self):
-        """High overlap + different branch → NAVY_UNIQUE."""
+    def test_verdict_at_risk_any_branch(self):
+        """High overlap + different branch → still AT_RISK (solved problem)."""
         results = [_make_result(0.70, [MilitaryBranch.ARMY])]
         ratings = [compute_overlap_rating(r.similarity_score) for r in results]
         verdict = compute_verdict(results, ratings, "navy")
-        assert verdict == Verdict.NAVY_UNIQUE
+        assert verdict == Verdict.AT_RISK
 
     def test_verdict_unique(self):
         """All low overlaps → UNIQUE."""

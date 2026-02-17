@@ -34,11 +34,10 @@ def compute_verdict(
     """Determine verdict from overlap distribution and branch matching.
 
     Rules (evaluated in order, first match wins):
-      1. Any high-overlap pub shares the proposal's branch → AT_RISK
-      2. Any high-overlap but none share the branch → NAVY_UNIQUE
-      3. Any medium-overlap pub shares the branch (no highs) → NEEDS_REVIEW
-      4. Any medium-overlap but none share the branch → NAVY_UNIQUE
-      5. Only low overlaps or no results → UNIQUE
+      1. Any high-overlap pub (any branch) → AT_RISK (well covered / solved problem)
+      2. Any medium-overlap pub shares the branch → NEEDS_REVIEW
+      3. Any medium-overlap but none share the branch → NAVY_UNIQUE
+      4. Only low overlaps or no results → UNIQUE
     """
     if not results:
         return Verdict.UNIQUE
@@ -54,9 +53,7 @@ def compute_verdict(
         return False
 
     if high_indices:
-        if _any_shares_branch(high_indices):
-            return Verdict.AT_RISK
-        return Verdict.NAVY_UNIQUE
+        return Verdict.AT_RISK
 
     if medium_indices:
         if _any_shares_branch(medium_indices):
