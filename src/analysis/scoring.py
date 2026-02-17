@@ -16,7 +16,7 @@ from src.models import MilitaryBranch, SimilarityResult, Verdict
 def compute_overlap_rating(similarity_score: float) -> str:
     """Map a cosine similarity score to a categorical overlap rating.
 
-    Thresholds are calibrated for SPECTER2 cosine similarity where
+    Thresholds are calibrated for embedding cosine similarity where
     the inclusion floor is already 0.30.
     """
     if similarity_score >= OVERLAP_HIGH_THRESHOLD:
