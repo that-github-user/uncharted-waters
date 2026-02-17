@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 import numpy as np
 
 from src.config import (
@@ -35,43 +33,17 @@ class RankingResult:
         self.threshold = threshold
 
 
-_STOPWORDS = frozenset({
-    "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
-    "of", "with", "by", "from", "is", "are", "was", "were", "be", "been",
-    "being", "have", "has", "had", "do", "does", "did", "will", "would",
-    "could", "should", "may", "might", "can", "shall", "not", "no",
-    "its", "it", "this", "that", "these", "those", "their", "them",
-    "they", "we", "our", "you", "your", "he", "she", "his", "her",
-    "my", "me", "i", "what", "which", "who", "whom", "how", "where",
-    "when", "why", "if", "then", "than", "so", "as", "up", "out",
-    "about", "into", "over", "after", "before", "between", "under",
-    "above", "below", "all", "each", "every", "both", "few", "more",
-    "most", "other", "some", "such", "only", "very", "also", "just",
-    "using", "used", "use", "based", "provide", "provided", "including",
-    "across", "through", "during", "among", "via", "new", "like",
-})
-
-
 def _extract_concepts(proposal: UserProposal) -> list[str]:
-    """Extract concepts from the proposal's keywords, title, and description.
+    """Return user-provided keywords as concepts for IDF scoring.
 
-    Starts with user-provided keywords (multi-word phrases preserved), then
-    extracts significant words from the topic description and title. Returns
-    up to 20 concepts for IDF scoring.
+    Only uses explicitly provided keywords — auto-extracting words from the
+    title/description is redundant with the holistic embedding and produces
+    generic terms (high document frequency → low IDF → low concept scores)
+    that drag down composite scores via the combination formula.
     """
-    concepts: list[str] = list(proposal.keywords or [])
-    seen = set(w.lower() for kw in concepts for w in kw.split())
-
-    for text in [proposal.topic_description or proposal.abstract, proposal.title]:
-        if not text:
-            continue
-        words = re.findall(r"\b[a-zA-Z0-9][\w-]*\b", text.lower())
-        for w in words:
-            if w not in _STOPWORDS and len(w) >= 3 and w not in seen:
-                concepts.append(w)
-                seen.add(w)
-
-    return concepts[:20]
+    if not proposal.keywords:
+        return []
+    return list(proposal.keywords)[:20]
 
 
 def _compute_idf_concept_scores(
@@ -125,10 +97,9 @@ def rank_publications(
     """Rank publications by composite similarity to the proposal.
 
     When keywords are provided, the score combines holistic embedding
-    similarity with IDF-weighted per-keyword concept scores via geometric
-    mean. This ensures a publication must cover *most* of the proposal's
-    concepts to score highly — general survey papers matching one keyword
-    are penalized without any arbitrary weight constants.
+    similarity with IDF-weighted per-keyword concept scores via weighted
+    average (75% holistic, 25% concept). This lets concept coverage
+    refine rankings without destroying strong embedding matches.
 
     When no keywords are provided, falls back to raw embedding similarity.
 
@@ -151,11 +122,11 @@ def rank_publications(
     concept_scores = _compute_idf_concept_scores(proposal, pub_embeddings)
 
     if concept_scores is not None:
-        # Geometric mean: sqrt(holistic * concept)
-        # Requires both overall relevance AND specific concept coverage
+        # Weighted average: holistic-dominant so concept coverage refines
+        # but can't crush a strong embedding match
         clipped_raw = np.maximum(raw_similarities, 0)
         clipped_concept = np.maximum(concept_scores, 0)
-        final_scores = np.sqrt(clipped_raw * clipped_concept)
+        final_scores = 0.75 * clipped_raw + 0.25 * clipped_concept
     else:
         final_scores = raw_similarities
 
