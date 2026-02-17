@@ -8,6 +8,9 @@ import logging
 import os
 import sys
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from src.config import DEFAULT_OUTPUT_DIR
 from src.models import MilitaryBranch, UserProposal, Verdict
 from src.pipeline import run_pipeline
