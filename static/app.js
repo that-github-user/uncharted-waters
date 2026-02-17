@@ -539,6 +539,7 @@ function renderLandscapeMap(data) {
       },
     })
   );
+}
 
 // ---- Error display ----
 
