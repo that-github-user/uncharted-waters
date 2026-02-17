@@ -34,13 +34,14 @@ SIMILARITY_THRESHOLD = 0.3
 # Concept coverage: IDF-weighted keyword matching
 CONCEPT_MATCH_THRESHOLD = 0.3   # min similarity for a keyword to count as "present" in IDF
 
-# Overlap rating thresholds (cosine similarity)
-OVERLAP_HIGH_THRESHOLD = 0.60
-OVERLAP_MEDIUM_THRESHOLD = 0.45
+# Overlap rating thresholds (composite similarity — geometric mean of
+# holistic embedding similarity and IDF-weighted concept coverage)
+OVERLAP_HIGH_THRESHOLD = 0.70
+OVERLAP_MEDIUM_THRESHOLD = 0.50
 
 # LLM settings
 LLM_MODEL = "claude-sonnet-4-5-20250929"
-LLM_MAX_TOKENS = 4096
+LLM_MAX_TOKENS = 8192
 
 # Military branch detection patterns
 BRANCH_PATTERNS: dict[str, list[str]] = {

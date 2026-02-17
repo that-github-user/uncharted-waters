@@ -154,7 +154,7 @@ def _make_result(score: float, branches: list[MilitaryBranch] | None = None) -> 
 
 class TestScoring:
     def test_overlap_rating_high(self):
-        assert compute_overlap_rating(0.65) == "high"
+        assert compute_overlap_rating(0.75) == "high"
 
     def test_overlap_rating_medium(self):
         assert compute_overlap_rating(0.50) == "medium"
@@ -163,9 +163,9 @@ class TestScoring:
         assert compute_overlap_rating(0.35) == "low"
 
     def test_overlap_rating_at_boundaries(self):
-        assert compute_overlap_rating(0.60) == "high"
-        assert compute_overlap_rating(0.45) == "medium"
-        assert compute_overlap_rating(0.4499) == "low"
+        assert compute_overlap_rating(0.70) == "high"
+        assert compute_overlap_rating(0.50) == "medium"
+        assert compute_overlap_rating(0.4999) == "low"
 
     def test_verdict_at_risk(self):
         """High overlap + same branch → AT_RISK."""
