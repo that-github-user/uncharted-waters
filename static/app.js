@@ -551,10 +551,12 @@ function renderLandscapeMap(data) {
       ctx.save();
       rings.forEach((ring) => {
         const px = xScale.getPixelForValue(ring.radius);
-        const pr = Math.abs(px - cx);
+        const py = yScale.getPixelForValue(ring.radius);
+        const prx = Math.abs(px - cx);
+        const pry = Math.abs(cy - py);
 
         ctx.beginPath();
-        ctx.arc(cx, cy, pr, 0, 2 * Math.PI);
+        ctx.ellipse(cx, cy, prx, pry, 0, 0, 2 * Math.PI);
         ctx.strokeStyle = "rgba(148, 176, 207, 0.2)";
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 4]);
@@ -565,7 +567,7 @@ function renderLandscapeMap(data) {
         ctx.font = "10px 'IBM Plex Mono', monospace";
         ctx.fillStyle = "rgba(148, 176, 207, 0.45)";
         ctx.textAlign = "center";
-        ctx.fillText(ring.label, cx, cy - pr - 4);
+        ctx.fillText(ring.label, cx, cy - pry - 4);
       });
       ctx.restore();
     },
