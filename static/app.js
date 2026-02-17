@@ -458,13 +458,19 @@ function renderLandscapeMap(data) {
   const relevantPoints = points.filter((p) => p.type === "relevant");
   const bgPoints = points.filter((p) => p.type === "background");
 
+  // Split relevant publications into overlap tiers for distinct legend entries
+  const highPoints = relevantPoints.filter((p) => p.similarity >= 0.70);
+  const medPoints = relevantPoints.filter((p) => p.similarity >= 0.50 && p.similarity < 0.70);
+  const lowPoints = relevantPoints.filter((p) => p.similarity < 0.50);
+
   const datasets = [];
+  const ptData = (p) => ({ x: p.x, y: p.y, label: p.label, similarity: p.similarity });
 
   // Background publications (below threshold)
   if (bgPoints.length > 0) {
     datasets.push({
       label: "Below Threshold",
-      data: bgPoints.map((p) => ({ x: p.x, y: p.y, label: p.label, similarity: p.similarity })),
+      data: bgPoints.map(ptData),
       backgroundColor: "rgba(61, 90, 128, 0.25)",
       borderColor: "rgba(61, 90, 128, 0.4)",
       borderWidth: 1,
@@ -473,32 +479,50 @@ function renderLandscapeMap(data) {
     });
   }
 
-  // Relevant publications (above threshold), colored by similarity
-  if (relevantPoints.length > 0) {
+  // Low overlap (above threshold but below medium)
+  if (lowPoints.length > 0) {
     datasets.push({
-      label: "Relevant Publications",
-      data: relevantPoints.map((p) => ({ x: p.x, y: p.y, label: p.label, similarity: p.similarity })),
-      backgroundColor: relevantPoints.map((p) => {
-        if (p.similarity >= 0.6) return "rgba(240, 113, 120, 0.8)";
-        if (p.similarity >= 0.45) return "rgba(240, 198, 116, 0.8)";
-        return "rgba(62, 207, 142, 0.7)";
-      }),
-      borderColor: relevantPoints.map((p) => {
-        if (p.similarity >= 0.6) return "#f07178";
-        if (p.similarity >= 0.45) return "#f0c674";
-        return "#3ecf8e";
-      }),
+      label: "Low Overlap",
+      data: lowPoints.map(ptData),
+      backgroundColor: "rgba(62, 207, 142, 0.7)",
+      borderColor: "#3ecf8e",
       borderWidth: 1.5,
-      pointRadius: relevantPoints.map((p) => 5 + p.similarity * 8),
+      pointRadius: 5,
+      pointHoverRadius: 8,
+    });
+  }
+
+  // Medium overlap
+  if (medPoints.length > 0) {
+    datasets.push({
+      label: "Medium Overlap",
+      data: medPoints.map(ptData),
+      backgroundColor: "rgba(240, 198, 116, 0.8)",
+      borderColor: "#f0c674",
+      borderWidth: 1.5,
+      pointRadius: 6,
+      pointHoverRadius: 9,
+    });
+  }
+
+  // High overlap
+  if (highPoints.length > 0) {
+    datasets.push({
+      label: "High Overlap",
+      data: highPoints.map(ptData),
+      backgroundColor: "rgba(240, 113, 120, 0.8)",
+      borderColor: "#f07178",
+      borderWidth: 1.5,
+      pointRadius: 7,
       pointHoverRadius: 10,
     });
   }
 
-  // Query point (star-like, amber)
+  // Query point at center (star)
   if (queryPoints.length > 0) {
     datasets.push({
       label: "Your Topic",
-      data: queryPoints.map((p) => ({ x: p.x, y: p.y, label: p.label, similarity: p.similarity })),
+      data: queryPoints.map(ptData),
       backgroundColor: "#d4a853",
       borderColor: "#e0be72",
       borderWidth: 2,
@@ -507,6 +531,45 @@ function renderLandscapeMap(data) {
       pointStyle: "star",
     });
   }
+
+  // Plugin: draw concentric threshold rings
+  const ringPlugin = {
+    id: "radialRings",
+    beforeDatasetsDraw(chart) {
+      const { ctx, scales } = chart;
+      const xScale = scales.x;
+      const yScale = scales.y;
+      const cx = xScale.getPixelForValue(0);
+      const cy = yScale.getPixelForValue(0);
+
+      const rings = [
+        { radius: 0.30, label: "High 0.70" },
+        { radius: 0.50, label: "Med 0.50" },
+        { radius: 0.70, label: "Min 0.30" },
+      ];
+
+      ctx.save();
+      rings.forEach((ring) => {
+        const px = xScale.getPixelForValue(ring.radius);
+        const pr = Math.abs(px - cx);
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, pr, 0, 2 * Math.PI);
+        ctx.strokeStyle = "rgba(148, 176, 207, 0.2)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Label at top of ring
+        ctx.font = "10px 'IBM Plex Mono', monospace";
+        ctx.fillStyle = "rgba(148, 176, 207, 0.45)";
+        ctx.textAlign = "center";
+        ctx.fillText(ring.label, cx, cy - pr - 4);
+      });
+      ctx.restore();
+    },
+  };
 
   chartInstances.push(
     new Chart(mapCtx, {
@@ -517,10 +580,14 @@ function renderLandscapeMap(data) {
         maintainAspectRatio: false,
         scales: {
           x: {
+            min: -1.15,
+            max: 1.15,
             display: false,
             grid: { display: false },
           },
           y: {
+            min: -1.15,
+            max: 1.15,
             display: false,
             grid: { display: false },
           },
@@ -543,19 +610,17 @@ function renderLandscapeMap(data) {
             borderColor: "#1e2f45",
             borderWidth: 1,
             callbacks: {
-              title: (items) => {
-                const raw = items[0]?.raw;
-                return raw?.label || "";
-              },
+              title: (items) => items[0]?.raw?.label || "",
               label: (ctx) => {
                 const raw = ctx.raw;
-                if (raw.similarity >= 1.0) return "Query point";
+                if (raw.similarity >= 1.0) return "Your topic (center)";
                 return `Similarity: ${raw.similarity.toFixed(3)}`;
               },
             },
           },
         },
       },
+      plugins: [ringPlugin],
     })
   );
 }

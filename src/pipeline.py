@@ -55,42 +55,55 @@ def generate_search_queries(proposal: UserProposal) -> list[SearchQuery]:
 
 
 def _compute_landscape_map(ranking) -> list[dict]:
-    """Project embeddings to 2D via PCA for the landscape scatter plot."""
+    """Radial layout: query at center, distance from center = 1 - similarity.
+
+    Angular position is derived from PCA on publication embeddings so
+    semantically similar publications cluster together around the ring.
+    """
     if ranking.proposal_embedding.size == 0 or ranking.pub_embeddings.size == 0:
         return []
 
-    # Combine proposal + all publication embeddings
-    all_embeddings = np.vstack([
-        ranking.proposal_embedding.reshape(1, -1),
-        ranking.pub_embeddings,
-    ])
+    pubs = ranking.publications
+    sims = ranking.similarities
+    n = len(pubs)
+    if n == 0:
+        return []
 
-    # PCA to 2D (mean-center, then top-2 singular vectors)
-    centered = all_embeddings - all_embeddings.mean(axis=0)
+    # Angular position: PCA 1D on publication embeddings for semantic grouping
+    pub_emb = ranking.pub_embeddings
+    centered = pub_emb - pub_emb.mean(axis=0)
     try:
         _, _, Vt = np.linalg.svd(centered, full_matrices=False)
-        projected = centered @ Vt[:2].T
+        proj_1d = centered @ Vt[0]
     except np.linalg.LinAlgError:
-        return []
+        proj_1d = np.zeros(n)
+
+    # Sort by PCA score, assign evenly spaced angles
+    order = np.argsort(proj_1d)
+    angles = np.zeros(n)
+    for rank_idx, idx in enumerate(order):
+        angles[idx] = 2 * np.pi * rank_idx / n
 
     points = []
 
-    # First point is the query
+    # Query at center
     points.append({
-        "x": float(projected[0, 0]),
-        "y": float(projected[0, 1]),
+        "x": 0.0,
+        "y": 0.0,
         "type": "query",
         "label": "Your Topic",
         "similarity": 1.0,
     })
 
-    # Remaining points are publications
-    for i, pub in enumerate(ranking.publications):
-        sim = float(ranking.similarities[i]) if i < len(ranking.similarities) else 0.0
+    # Publications: polar to cartesian
+    for i, pub in enumerate(pubs):
+        sim = float(sims[i]) if i < len(sims) else 0.0
+        radius = 1.0 - max(sim, 0.0)
+        angle = float(angles[i])
         above = sim >= ranking.threshold
         points.append({
-            "x": float(projected[i + 1, 0]),
-            "y": float(projected[i + 1, 1]),
+            "x": round(float(radius * np.cos(angle)), 4),
+            "y": round(float(radius * np.sin(angle)), 4),
             "type": "relevant" if above else "background",
             "label": pub.title[:60],
             "similarity": round(sim, 3),
