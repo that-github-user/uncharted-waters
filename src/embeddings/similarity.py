@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 
 from src.config import (
@@ -33,22 +35,62 @@ class RankingResult:
         self.threshold = threshold
 
 
+_STOPWORDS = frozenset({
+    "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
+    "of", "with", "by", "from", "is", "are", "was", "were", "be", "been",
+    "being", "have", "has", "had", "do", "does", "did", "will", "would",
+    "could", "should", "may", "might", "can", "shall", "not", "no",
+    "its", "it", "this", "that", "these", "those", "their", "them",
+    "they", "we", "our", "you", "your", "he", "she", "his", "her",
+    "my", "me", "i", "what", "which", "who", "whom", "how", "where",
+    "when", "why", "if", "then", "than", "so", "as", "up", "out",
+    "about", "into", "over", "after", "before", "between", "under",
+    "above", "below", "all", "each", "every", "both", "few", "more",
+    "most", "other", "some", "such", "only", "very", "also", "just",
+    "using", "used", "use", "based", "provide", "provided", "including",
+    "across", "through", "during", "among", "via", "new", "like",
+})
+
+
+def _extract_concepts(proposal: UserProposal) -> list[str]:
+    """Extract concepts from the proposal's keywords, title, and description.
+
+    Starts with user-provided keywords (multi-word phrases preserved), then
+    extracts significant words from the topic description and title. Returns
+    up to 20 concepts for IDF scoring.
+    """
+    concepts: list[str] = list(proposal.keywords or [])
+    seen = set(w.lower() for kw in concepts for w in kw.split())
+
+    for text in [proposal.topic_description or proposal.abstract, proposal.title]:
+        if not text:
+            continue
+        words = re.findall(r"\b[a-zA-Z0-9][\w-]*\b", text.lower())
+        for w in words:
+            if w not in _STOPWORDS and len(w) >= 3 and w not in seen:
+                concepts.append(w)
+                seen.add(w)
+
+    return concepts[:20]
+
+
 def _compute_idf_concept_scores(
     proposal: UserProposal,
     pub_embeddings: np.ndarray,
 ) -> np.ndarray | None:
     """Compute IDF-weighted concept scores for each publication.
 
-    Each keyword is encoded separately and matched against every publication.
-    Keywords that appear in many publications (high document frequency) get
-    low IDF weight — they're generic and not distinguishing. Keywords that
-    appear in few publications get high IDF weight — they're specific and
-    matching them is a strong signal.
+    Concepts are extracted from the proposal's keywords, title, and topic
+    description. Each concept is encoded separately and matched against
+    every publication. Keywords that appear in many publications (high
+    document frequency) get low IDF weight — they're generic and not
+    distinguishing. Keywords that appear in few publications get high IDF
+    weight — they're specific and matching them is a strong signal.
 
     Returns an array of concept scores (one per publication), or None if
-    no keywords are provided (caller should fall back to raw similarity).
+    no concepts can be extracted.
     """
-    concepts = proposal.keywords or []
+    concepts = _extract_concepts(proposal)
     n_pubs = pub_embeddings.shape[0] if pub_embeddings.ndim > 1 else 0
     if not concepts or n_pubs == 0:
         return None
