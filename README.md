@@ -10,7 +10,7 @@ pinned: false
 
 # Uncharted Waters — DTIC Research Landscape Explorer
 
-Explore the defense research landscape against the [DTIC Dimensions](https://dtic.dimensions.ai) database. Describe a general research topic and the tool searches DTIC, ranks similar publications by semantic similarity (SPECTER2), and uses Claude to generate a landscape assessment.
+Explore the defense research landscape against the [DTIC Dimensions](https://dtic.dimensions.ai) database. Describe a general research topic and the tool searches DTIC, ranks similar publications by semantic similarity (nomic-embed-text), and uses Claude to generate a landscape assessment.
 
 ## Verdicts
 
@@ -74,7 +74,7 @@ python -m src.cli \
 | Environment Variable | Default | Description |
 |---------------------|---------|-------------|
 | `ANTHROPIC_API_KEY` | (required) | Your Anthropic API key |
-| `EMBEDDING_MODEL` | `allenai/specter2_aug2023refresh` | Embedding model to use |
+| `EMBEDDING_MODEL` | `nomic-ai/nomic-embed-text-v1.5` | Embedding model to use |
 | `ACCESS_CODE` | (unset) | Shared access code; unset = no gate |
 
 ## Running Tests

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+from string import Template
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -20,7 +21,7 @@ def _hash_code(code: str) -> str:
     return hashlib.sha256(code.encode()).hexdigest()
 
 
-GATE_HTML = """\
+_GATE_TEMPLATE = Template("""\
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -104,7 +105,7 @@ GATE_HTML = """\
     <div class="gate-card">
       <h1>Research Landscape Explorer</h1>
       <p>Enter your access code to continue.</p>
-      {error}
+      $error
       <form method="post" action="/gate">
         <input type="password" name="code" placeholder="Access code" autofocus required>
         <button type="submit">Enter</button>
@@ -113,7 +114,7 @@ GATE_HTML = """\
   </div>
 </body>
 </html>
-"""
+""")
 
 
 class AccessGateMiddleware(BaseHTTPMiddleware):
@@ -144,7 +145,7 @@ def register_gate_routes(app: FastAPI) -> None:
 
     @app.get("/gate", response_class=HTMLResponse)
     async def gate_page():
-        return GATE_HTML.format(error="")
+        return _GATE_TEMPLATE.substitute(error="")
 
     @app.post("/gate")
     async def gate_submit(request: Request):
@@ -162,7 +163,7 @@ def register_gate_routes(app: FastAPI) -> None:
             )
             return response
 
-        html = GATE_HTML.format(
+        html = _GATE_TEMPLATE.substitute(
             error='<div class="gate-error">Invalid access code.</div>'
         )
         return HTMLResponse(html, status_code=403)

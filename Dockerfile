@@ -14,9 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ src/
 COPY static/ static/
 
-# Pre-download embedding models so first request is fast
-# MiniLM (~80MB) is the reliable fallback; SPECTER2 attempted at runtime
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
+# Pre-download nomic-embed-text (~550MB) so first request is fast
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('nomic-ai/nomic-embed-text-v1.5', trust_remote_code=True)"
 
 EXPOSE 7860
 CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "7860"]

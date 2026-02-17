@@ -23,8 +23,7 @@ USER_AGENT = (
 )
 
 # Embedding models
-DEFAULT_EMBEDDING_MODEL = "allenai/specter2_aug2023refresh"
-SPECTER2_ADAPTER = "allenai/specter2_proximity"
+DEFAULT_EMBEDDING_MODEL = "nomic-ai/nomic-embed-text-v1.5"
 FALLBACK_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", DEFAULT_EMBEDDING_MODEL)
 
