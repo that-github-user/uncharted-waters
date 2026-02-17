@@ -18,7 +18,7 @@ ACCESS_CODE = os.environ.get("ACCESS_CODE", "").strip()
 COOKIE_NAME = "access_token"
 COOKIE_MAX_AGE = 60 * 60 * 24 * 30  # 30 days
 
-logger.info("Access gate: %s", "ENABLED" if ACCESS_CODE else "DISABLED (no ACCESS_CODE set)")
+print(f"[auth] Access gate: {'ENABLED' if ACCESS_CODE else 'DISABLED (no ACCESS_CODE set)'}")
 
 
 def _hash_code(code: str) -> str:
@@ -155,7 +155,7 @@ def register_gate_routes(app: FastAPI) -> None:
     async def gate_submit(request: Request):
         form = await request.form()
         code = str(form.get("code", "")).strip()
-        logger.info("Gate attempt: code_len=%d, access_code_set=%s", len(code), bool(ACCESS_CODE))
+        print(f"[auth] Gate attempt: code_len={len(code)}, access_code_set={bool(ACCESS_CODE)}")
 
         if ACCESS_CODE and code == ACCESS_CODE:
             response = RedirectResponse("/", status_code=303)
