@@ -8,84 +8,51 @@ app_port: 7860
 pinned: false
 ---
 
-# Uncharted Waters — DTIC Research Landscape Explorer
+# Uncharted Waters
 
-Explore the defense research landscape against the [DTIC Dimensions](https://dtic.dimensions.ai) database. Describe a general research topic and the tool searches DTIC, ranks similar publications by semantic similarity (nomic-embed-text), and uses Claude to generate a landscape assessment.
+Automated research landscape analysis against the [DTIC Dimensions](https://dtic.dimensions.ai) database. Describe a research area and get back a structured assessment of what already exists, what's missing, and where the opportunities are.
+
+**[Try it live on HuggingFace Spaces](https://huggingface.co/spaces/that-github-user/uncharted-waters)**
+
+## How It Works
+
+The pipeline runs four stages:
+
+1. **Search** — Multiple query strategies scan the DTIC Dimensions publication database, deduplicating across result sets
+2. **Embed** — Publications and the research topic are encoded with [nomic-embed-text-v1.5](https://huggingface.co/nomic-ai/nomic-embed-text-v1.5) using asymmetric retrieval prefixes (`search_query:` / `search_document:`)
+3. **Score** — Similarity is computed as the geometric mean of holistic embedding similarity and IDF-weighted per-keyword concept scores. Keywords that appear in many results (generic terms) are down-weighted; rare, specific keywords carry more signal. This prevents a general survey paper from inflating overlap when the research topic is a specific multi-concept intersection
+4. **Assess** — Claude analyzes the scored results and generates a landscape report with comparisons, gaps, and recommendations. The verdict and confidence are computed deterministically from scores and branch data — the LLM provides narrative, not metrics
 
 ## Verdicts
 
 | Verdict | Meaning |
 |---------|---------|
-| **UNIQUE** | Open landscape — no substantially similar work found |
-| **NAVY_UNIQUE** | Branch opportunity — similar work funded by other branches |
-| **AT_RISK** | Well covered — very similar existing work found |
-| **NEEDS_REVIEW** | Mixed coverage — requires human expert judgment |
+| **Open Landscape** | No substantially similar work found |
+| **Branch Opportunity** | Similar work exists but funded by other branches |
+| **Well Covered** | Very similar existing work found in the same branch |
+| **Mixed Coverage** | Partial overlap — requires expert judgment |
 
-## Live Demo
-
-The app is deployed on [HuggingFace Spaces](https://huggingface.co/spaces). Access requires a shared access code.
-
-## Deploy Your Own
-
-### HuggingFace Spaces (recommended)
-
-1. **Create a Space** at [huggingface.co/new-space](https://huggingface.co/new-space) — select **Docker** as the SDK
-2. **Generate a write token** at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
-3. **Add GitHub secrets** in your fork's Settings > Secrets and variables > Actions:
-   - `HF_TOKEN` — your HuggingFace write token
-4. **Add GitHub variable**:
-   - `HF_SPACE_ID` — e.g. `username/uncharted-waters`
-5. **Add HF Space secrets** (in the Space's Settings tab):
-   - `ANTHROPIC_API_KEY` — your Anthropic API key
-   - `ACCESS_CODE` — a shared code for gated access
-
-Pushes to `master`/`main` automatically deploy via the `deploy-hf.yml` workflow.
-
-### Local
+## Development
 
 ```bash
+# Clone and install (CPU-only PyTorch saves ~1.5GB)
 git clone https://github.com/that-github-user/uncharted-waters.git
 cd uncharted-waters
-
-# CPU-only PyTorch (saves ~1.5GB)
 pip install torch --index-url https://download.pytorch.org/whl/cpu
-pip install -r requirements.txt
-
-cp .env.example .env
-# Edit .env — set ANTHROPIC_API_KEY (ACCESS_CODE is optional locally)
-
-uvicorn src.api:app --reload
-# Open http://localhost:8000
-```
-
-### CLI
-
-```bash
-python -m src.cli \
-  --title "Autonomous Underwater Vehicle Navigation Using Quantum Sensors" \
-  --topic "General description of the research area..." \
-  --keywords "AUV, quantum sensing, inertial navigation" \
-  --branch navy \
-  --output reports/
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---------------------|---------|-------------|
-| `ANTHROPIC_API_KEY` | (required) | Your Anthropic API key |
-| `EMBEDDING_MODEL` | `nomic-ai/nomic-embed-text-v1.5` | Embedding model to use |
-| `ACCESS_CODE` | (unset) | Shared access code; unset = no gate |
-
-## Running Tests
-
-```bash
 pip install -r requirements-dev.txt
+
+# Configure
+cp .env.example .env
+# Edit .env — set ANTHROPIC_API_KEY
+
+# Run locally
+uvicorn src.api:app --reload
+# → http://localhost:8000
+
+# Run tests (all mock HTTP, no API key needed)
 pytest tests/ -v
 ```
 
-Tests run automatically on push/PR via the `ci.yml` workflow. All tests mock HTTP — no API keys needed.
-
 ## Cost
 
-Each analysis run costs approximately **$0.02-0.05** in Anthropic API usage (Claude Sonnet).
+Each analysis run uses approximately $0.02–0.05 in Anthropic API usage (Claude Sonnet).
