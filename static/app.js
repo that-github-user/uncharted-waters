@@ -7,6 +7,11 @@ if (typeof marked !== "undefined") {
   marked.setOptions({ breaks: true });
 }
 
+// Add target="_blank" to all external links (skip internal anchors)
+function openLinksInNewTab(html) {
+  return html.replace(/<a href="(?!#)/g, '<a target="_blank" rel="noopener noreferrer" href="');
+}
+
 // State
 let currentMarkdown = "";
 let elapsedTimer = null;
@@ -168,7 +173,7 @@ function showResults(data) {
   const fullSummary = data.summary || "";
   const verdictSummaryEl = document.getElementById("verdict-summary");
   if (typeof marked !== "undefined" && fullSummary) {
-    verdictSummaryEl.innerHTML = marked.parse(fullSummary);
+    verdictSummaryEl.innerHTML = openLinksInNewTab(marked.parse(fullSummary));
   } else {
     verdictSummaryEl.textContent = fullSummary;
   }
@@ -179,7 +184,7 @@ function showResults(data) {
   // Render markdown report
   const reportEl = document.getElementById("report-content");
   if (typeof marked !== "undefined" && currentMarkdown) {
-    reportEl.innerHTML = marked.parse(currentMarkdown);
+    reportEl.innerHTML = openLinksInNewTab(marked.parse(currentMarkdown));
   } else {
     reportEl.textContent = currentMarkdown;
   }

@@ -77,6 +77,17 @@ def encode_proposal(proposal: UserProposal) -> np.ndarray:
     return model.encode([text], normalize_embeddings=True)[0]
 
 
+def encode_concepts(concepts: list[str]) -> np.ndarray:
+    """Encode individual concept/keyword strings as separate query embeddings."""
+    if not concepts:
+        return np.array([])
+    model = get_model()
+    texts = list(concepts)
+    if _is_nomic():
+        texts = ["search_query: " + t for t in texts]
+    return model.encode(texts, normalize_embeddings=True)
+
+
 def encode_publications(publications: list[Publication]) -> np.ndarray:
     """Encode a list of publications into embedding vectors."""
     model = get_model()

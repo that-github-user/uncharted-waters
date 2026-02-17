@@ -31,6 +31,9 @@ EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", DEFAULT_EMBEDDING_MODEL)
 SIMILARITY_TOP_K = 20
 SIMILARITY_THRESHOLD = 0.3
 
+# Concept coverage: IDF-weighted keyword matching
+CONCEPT_MATCH_THRESHOLD = 0.3   # min similarity for a keyword to count as "present" in IDF
+
 # Overlap rating thresholds (cosine similarity)
 OVERLAP_HIGH_THRESHOLD = 0.60
 OVERLAP_MEDIUM_THRESHOLD = 0.45
