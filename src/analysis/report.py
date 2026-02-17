@@ -15,11 +15,27 @@ VERDICT_BADGES = {
 }
 
 VERDICT_DESCRIPTIONS = {
-    Verdict.UNIQUE: "No substantially similar work was found in the DTIC database. This topic area has wide opportunity for new research.",
+    Verdict.UNIQUE: "No substantially similar work was found. This topic area has wide opportunity for new research.",
     Verdict.NAVY_UNIQUE: "Similar work exists but was not funded by the branch of interest. There is an opportunity for this branch to invest.",
-    Verdict.AT_RISK: "This topic area is already well covered in the DTIC database, including work by the branch of interest.",
+    Verdict.AT_RISK: "This topic area is already well covered, including work by the branch of interest.",
     Verdict.NEEDS_REVIEW: "Mixed coverage found — partial overlaps that require human expert judgment to fully assess.",
 }
+
+
+_BRANCH_DISPLAY = {
+    "navy": "Navy",
+    "army": "Army",
+    "air_force": "Air Force",
+    "darpa": "DARPA",
+    "dod": "DoD",
+    "marine_corps": "Marine Corps",
+    "space_force": "Space Force",
+}
+
+
+def _format_branch(branch: str) -> str:
+    """Format a branch value for display, handling acronyms correctly."""
+    return _BRANCH_DISPLAY.get(branch, branch.replace("_", " ").title())
 
 
 def _ensure_paragraph_breaks(text: str) -> str:
@@ -91,7 +107,7 @@ def generate_markdown_report(report: AnalysisReport) -> str:
     topic_text = report.proposal.topic_description or report.proposal.abstract
 
     lines = [
-        f"# DTIC Research Landscape Report",
+        f"# Uncharted Waters — Research Landscape Report",
         f"",
         f"**Generated:** {now}",
         f"",
@@ -172,7 +188,7 @@ def generate_markdown_report(report: AnalysisReport) -> str:
                 meta_parts.append(f"**Year:** {comp.pub_year}")
             if comp.funding_branches:
                 branches_str = ", ".join(
-                    b.replace("_", " ").title() for b in comp.funding_branches
+                    _format_branch(b) for b in comp.funding_branches
                 )
                 meta_parts.append(f"**Funding:** {branches_str}")
             meta_parts.append(f"**Overlap Rating:** {overlap_indicator}")
@@ -226,7 +242,7 @@ def generate_markdown_report(report: AnalysisReport) -> str:
     lines.extend([
         f"---",
         f"",
-        f"*This report was generated automatically by the DTIC Research Landscape Analyzer. "
+        f"*This report was generated automatically by Uncharted Waters. "
         f"It is intended to assist with research landscape exploration and should be "
         f"reviewed by a subject matter expert.*",
     ])
@@ -240,7 +256,7 @@ def generate_step_summary(report: AnalysisReport) -> str:
     exec_summary = _ensure_paragraph_breaks(report.executive_summary)
 
     lines = [
-        f"## DTIC Landscape Assessment: {badge}",
+        f"## Landscape Assessment: {badge}",
         f"",
         f"**Topic:** {report.proposal.title}",
         f"",

@@ -1,5 +1,5 @@
 /* ============================================================
-   DTIC Research Landscape Explorer — Frontend Logic
+   Uncharted Waters — Frontend Logic
    ============================================================ */
 
 // Configure marked.js to treat single newlines as <br> (safety net)
@@ -564,7 +564,7 @@ document.getElementById("download-btn").addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "dtic_landscape_report.md";
+  a.download = "uncharted_waters_report.md";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

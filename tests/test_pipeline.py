@@ -135,7 +135,7 @@ class TestReportGeneration:
 
     def test_step_summary_landscape_labels(self, sample_report):
         summary = generate_step_summary(sample_report)
-        assert "DTIC Landscape Assessment:" in summary
+        assert "Landscape Assessment:" in summary
         assert "Topic:" in summary
 
 

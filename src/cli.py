@@ -1,4 +1,4 @@
-"""CLI entry point for the DTIC Research Landscape Analyzer."""
+"""CLI entry point for Uncharted Waters."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from src.pipeline import run_pipeline
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="DTIC Research Landscape Analyzer — explore research coverage and gaps"
+        description="Uncharted Waters — explore research coverage and gaps"
     )
     parser.add_argument("--title", required=True, help="Research topic title")
     parser.add_argument("--topic", default="", help="General description of the research area (non-sensitive)")
