@@ -164,7 +164,8 @@ def register_gate_routes(app: FastAPI) -> None:
                 _hash_code(ACCESS_CODE),
                 max_age=COOKIE_MAX_AGE,
                 httponly=True,
-                samesite="lax",
+                secure=True,
+                samesite="none",
             )
             return response
 
