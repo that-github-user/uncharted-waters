@@ -25,7 +25,19 @@ def generate_search_queries(proposal: UserProposal) -> list[SearchQuery]:
     # Strategy 1: direct title search
     queries.append(SearchQuery(text=proposal.title, strategy="title"))
 
-    # Strategy 2: keyword search
+    # Strategy 2: topic description as a direct search query
+    # Critical: the description may contain the actual publication title or
+    # key phrases that differ from the user's title field.
+    description = proposal.topic_description or proposal.abstract
+    if description and description.strip().lower() != proposal.title.strip().lower():
+        desc_words = description.split()
+        if len(desc_words) <= 40:
+            queries.append(SearchQuery(text=description, strategy="description"))
+        else:
+            excerpt = " ".join(desc_words[:40])
+            queries.append(SearchQuery(text=excerpt, strategy="topic_excerpt"))
+
+    # Strategy 3: keyword search
     if proposal.keywords:
         queries.append(
             SearchQuery(
@@ -33,13 +45,6 @@ def generate_search_queries(proposal: UserProposal) -> list[SearchQuery]:
                 strategy="keywords",
             )
         )
-
-    # Strategy 3: topic/abstract excerpt (first ~200 chars of key content)
-    description = proposal.topic_description or proposal.abstract
-    desc_words = description.split() if description else []
-    if len(desc_words) > 10:
-        excerpt = " ".join(desc_words[:40])
-        queries.append(SearchQuery(text=excerpt, strategy="topic_excerpt"))
 
     # Strategy 4: title + keywords combined
     if proposal.keywords:

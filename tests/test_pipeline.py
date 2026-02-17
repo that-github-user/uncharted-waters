@@ -59,14 +59,24 @@ class TestQueryGeneration:
         strategies = [q.strategy for q in queries]
         assert "topic_excerpt" in strategies
 
-    def test_no_topic_excerpt_for_short_descriptions(self):
+    def test_short_description_generates_description_query(self):
         proposal = UserProposal(
             title="Test",
             topic_description="Short description",
         )
         queries = generate_search_queries(proposal)
         strategies = [q.strategy for q in queries]
+        assert "description" in strategies
         assert "topic_excerpt" not in strategies
+
+    def test_no_description_query_when_same_as_title(self):
+        proposal = UserProposal(
+            title="Test Topic",
+            topic_description="Test Topic",
+        )
+        queries = generate_search_queries(proposal)
+        strategies = [q.strategy for q in queries]
+        assert "description" not in strategies
 
 
 class TestReportGeneration:
