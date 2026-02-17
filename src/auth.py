@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 from string import Template
 
@@ -11,10 +12,13 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, RedirectResponse, Response
 from fastapi import FastAPI
 
+logger = logging.getLogger(__name__)
 
-ACCESS_CODE = os.environ.get("ACCESS_CODE", "")
+ACCESS_CODE = os.environ.get("ACCESS_CODE", "").strip()
 COOKIE_NAME = "access_token"
 COOKIE_MAX_AGE = 60 * 60 * 24 * 30  # 30 days
+
+logger.info("Access gate: %s", "ENABLED" if ACCESS_CODE else "DISABLED (no ACCESS_CODE set)")
 
 
 def _hash_code(code: str) -> str:
@@ -150,9 +154,10 @@ def register_gate_routes(app: FastAPI) -> None:
     @app.post("/gate")
     async def gate_submit(request: Request):
         form = await request.form()
-        code = form.get("code", "")
+        code = str(form.get("code", "")).strip()
+        logger.info("Gate attempt: code_len=%d, access_code_set=%s", len(code), bool(ACCESS_CODE))
 
-        if code == ACCESS_CODE and ACCESS_CODE:
+        if ACCESS_CODE and code == ACCESS_CODE:
             response = RedirectResponse("/", status_code=303)
             response.set_cookie(
                 COOKIE_NAME,
