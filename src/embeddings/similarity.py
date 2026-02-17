@@ -150,5 +150,5 @@ def rank_publications(
     for i, result in enumerate(results):
         result.rank = i + 1
 
-    # Store raw similarities for landscape map visualization (not composite)
-    return RankingResult(results, proposal_embedding, pub_embeddings, publications, raw_similarities, threshold)
+    # Store final (composite) scores so landscape map positions match overlap ratings
+    return RankingResult(results, proposal_embedding, pub_embeddings, publications, final_scores, threshold)
