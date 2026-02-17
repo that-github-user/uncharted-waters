@@ -1,5 +1,5 @@
 /* ============================================================
-   Uncharted Waters — Intelligence Briefing Aesthetic
+   Uncharted Waters Explorer — Intelligence Briefing Aesthetic
    Dark slate, amber accents, authoritative typography
    ============================================================ */
 
@@ -630,7 +630,33 @@ select:focus {
   font-family: var(--font-mono);
   font-size: 0.8rem;
   color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.verdict-relevance {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
   margin-bottom: 1rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.verdict-relevance:empty {
+  display: none;
+}
+
+.verdict-relevance.branch-specific {
+  color: var(--amber-400);
+  background: rgba(212, 168, 83, 0.1);
+  border: 1px solid rgba(212, 168, 83, 0.25);
+}
+
+.verdict-relevance.cross-branch {
+  color: var(--blue-500);
+  background: rgba(91, 164, 245, 0.1);
+  border: 1px solid rgba(91, 164, 245, 0.25);
 }
 
 .verdict-summary {

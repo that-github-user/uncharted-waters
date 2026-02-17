@@ -71,6 +71,12 @@ narrative text — do NOT override them.
 Analyze the research topic against the publications above and provide your landscape \
 assessment in the following JSON format. Do NOT wrap in markdown code fences.
 
+Additionally, assess whether this research topic is inherently specific to the branch of \
+interest's mission, platforms, or facilities (e.g., Navy shipyard maintenance is inherently \
+Navy-specific), or whether it represents a universal defense problem applicable across \
+branches (e.g., a novel ML architecture for predictive maintenance could serve any branch). \
+Consider arguments for both sides before making your determination.
+
 {{
   "executive_summary": "2-3 paragraph summary of the research landscape and gap analysis",
   "comparisons": [
@@ -87,7 +93,11 @@ assessment in the following JSON format. Do NOT wrap in markdown code fences.
   ],
   "recommendations": [
     "Actionable recommendations for pursuing research in this area (list 2-4 points)"
-  ]
+  ],
+  "branch_relevance": {{
+    "determination": "branch_specific or cross_branch",
+    "reasoning": "1-2 sentences explaining why this topic is or is not inherently tied to the branch of interest"
+  }}
 }}
 
 Evaluate EVERY publication listed above. Be specific about relevance and gaps. \

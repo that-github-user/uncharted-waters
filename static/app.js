@@ -1,5 +1,5 @@
 /* ============================================================
-   Uncharted Waters — Frontend Logic
+   Uncharted Waters Explorer — Frontend Logic
    ============================================================ */
 
 // Configure marked.js to treat single newlines as <br> (safety net)
@@ -168,6 +168,20 @@ function showResults(data) {
 
   document.getElementById("verdict-confidence").textContent =
     `Confidence: ${Math.round(data.confidence * 100)}%`;
+
+  // Branch relevance indicator
+  const relEl = document.getElementById("verdict-relevance");
+  const br = (data.report && data.report.branch_relevance) || "";
+  const brReason = (data.report && data.report.branch_relevance_reasoning) || "";
+  if (br === "branch_specific") {
+    relEl.textContent = "Branch-Specific — " + brReason;
+    relEl.className = "verdict-relevance branch-specific";
+  } else if (br === "cross_branch") {
+    relEl.textContent = "Cross-Branch Applicable — " + brReason;
+    relEl.className = "verdict-relevance cross-branch";
+  } else {
+    relEl.textContent = "";
+  }
 
   // Show executive summary in the verdict card, rendered as HTML
   const fullSummary = data.summary || "";

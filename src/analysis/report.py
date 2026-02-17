@@ -107,7 +107,7 @@ def generate_markdown_report(report: AnalysisReport) -> str:
     topic_text = report.proposal.topic_description or report.proposal.abstract
 
     lines = [
-        f"# Uncharted Waters — Research Landscape Report",
+        f"# Uncharted Waters Explorer — Research Landscape Report",
         f"",
         f"**Generated:** {now}",
         f"",
@@ -117,6 +117,20 @@ def generate_markdown_report(report: AnalysisReport) -> str:
         f"",
         f"**Confidence:** {report.confidence:.0%}",
         f"",
+    ]
+
+    if report.branch_relevance:
+        rel_label = "Cross-Branch Applicable"
+        if report.branch_relevance == "branch_specific":
+            branch_name = _format_branch(report.proposal.military_branch.value)
+            rel_label = f"Branch-Specific to {branch_name}"
+        lines.append(f"**Branch Relevance:** {rel_label}")
+        if report.branch_relevance_reasoning:
+            lines.append(f"")
+            lines.append(f"> {report.branch_relevance_reasoning}")
+        lines.append("")
+
+    lines.extend([
         f"> {desc}",
         f"",
         f"---",
@@ -129,7 +143,7 @@ def generate_markdown_report(report: AnalysisReport) -> str:
         f"",
         f"**Topic Description:** {topic_text}",
         f"",
-    ]
+    ])
 
     if report.proposal.keywords:
         lines.append(f"**Keywords:** {', '.join(report.proposal.keywords)}")
@@ -242,7 +256,7 @@ def generate_markdown_report(report: AnalysisReport) -> str:
     lines.extend([
         f"---",
         f"",
-        f"*This report was generated automatically by Uncharted Waters. "
+        f"*This report was generated automatically by Uncharted Waters Explorer. "
         f"It is intended to assist with research landscape exploration and should be "
         f"reviewed by a subject matter expert.*",
     ])
@@ -262,6 +276,19 @@ def generate_step_summary(report: AnalysisReport) -> str:
         f"",
         f"**Confidence:** {report.confidence:.0%}",
         f"",
+    ]
+
+    if report.branch_relevance:
+        rel_label = "Cross-Branch Applicable"
+        if report.branch_relevance == "branch_specific":
+            branch_name = _format_branch(report.proposal.military_branch.value)
+            rel_label = f"Branch-Specific to {branch_name}"
+        lines.append(f"**Branch Relevance:** {rel_label}")
+        if report.branch_relevance_reasoning:
+            lines.append(f"> {report.branch_relevance_reasoning}")
+        lines.append("")
+
+    lines.extend([
         f"**Publications Found:** {report.total_results_found} | "
         f"**Analyzed:** {report.results_analyzed}",
         f"",
@@ -269,7 +296,7 @@ def generate_step_summary(report: AnalysisReport) -> str:
         f"",
         f"{exec_summary}",
         f"",
-    ]
+    ])
 
     if report.recommendations:
         lines.append("### Key Recommendations")

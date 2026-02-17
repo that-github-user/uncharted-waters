@@ -243,6 +243,8 @@ async def analyze_uniqueness(
             )
         )
 
+    br = parsed.get("branch_relevance", {})
+
     return AnalysisReport(
         proposal=proposal,
         verdict=verdict,
@@ -251,6 +253,8 @@ async def analyze_uniqueness(
         comparisons=comparisons,
         points_of_differentiation=parsed.get("points_of_differentiation", []),
         recommendations=parsed.get("recommendations", []),
+        branch_relevance=br.get("determination", ""),
+        branch_relevance_reasoning=br.get("reasoning", ""),
         total_results_found=len(similarity_results),
         results_analyzed=len(similarity_results),
         search_queries_used=search_queries_used,

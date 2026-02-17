@@ -91,6 +91,8 @@ class AnalysisReport(BaseModel):
     comparisons: list[PublicationComparison] = Field(default_factory=list)
     points_of_differentiation: list[str] = Field(default_factory=list)
     recommendations: list[str] = Field(default_factory=list)
+    branch_relevance: str = ""
+    branch_relevance_reasoning: str = ""
     total_results_found: int = 0
     results_analyzed: int = 0
     search_queries_used: list[str] = Field(default_factory=list)

@@ -19,7 +19,7 @@ from src.models import MilitaryBranch, UserProposal
 from src.pipeline import run_pipeline
 from src.auth import AccessGateMiddleware, register_gate_routes
 
-app = FastAPI(title="Uncharted Waters", version="0.2.0")
+app = FastAPI(title="Uncharted Waters Explorer", version="0.2.0")
 
 app.add_middleware(AccessGateMiddleware)
 register_gate_routes(app)
